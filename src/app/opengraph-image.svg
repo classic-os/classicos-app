@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <radialGradient id="bgA" cx="18%" cy="18%" r="70%">
+      <stop offset="0%" stop-color="#10b981" stop-opacity="0.18"></stop>
+      <stop offset="60%" stop-color="#0a0a0a" stop-opacity="0"></stop>
+    </radialGradient>
+    <radialGradient id="bgB" cx="82%" cy="22%" r="60%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.08"></stop>
+      <stop offset="70%" stop-color="#0a0a0a" stop-opacity="0"></stop>
+    </radialGradient>
+    <linearGradient id="line" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#0a0a0a" stop-opacity="0"></stop>
+      <stop offset="50%" stop-color="#ffffff" stop-opacity="0.20"></stop>
+      <stop offset="100%" stop-color="#0a0a0a" stop-opacity="0"></stop>
+    </linearGradient>
+    <linearGradient id="active" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#0a0a0a" stop-opacity="0"></stop>
+      <stop offset="50%" stop-color="#34d399" stop-opacity="0.7"></stop>
+      <stop offset="100%" stop-color="#0a0a0a" stop-opacity="0"></stop>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="#0a0a0a"></rect>
+  <rect width="1200" height="630" fill="url(#bgA)"></rect>
+  <rect width="1200" height="630" fill="url(#bgB)"></rect>
+
+  <!-- grid -->
+  <g opacity="0.08" stroke="#ffffff" stroke-width="1">
+    <path d="M0 110 H1200"></path>
+    <path d="M0 200 H1200"></path>
+    <path d="M0 290 H1200"></path>
+    <path d="M0 380 H1200"></path>
+    <path d="M0 470 H1200"></path>
+    <path d="M160 0 V630"></path>
+    <path d="M340 0 V630"></path>
+    <path d="M520 0 V630"></path>
+    <path d="M700 0 V630"></path>
+    <path d="M880 0 V630"></path>
+    <path d="M1060 0 V630"></path>
+  </g>
+
+  <!-- conduits -->
+  <rect x="-120" y="210" width="1440" height="2" fill="url(#line)" opacity="0.55"></rect>
+  <rect x="-120" y="330" width="1440" height="2" fill="url(#line)" opacity="0.40"></rect>
+  <rect x="-120" y="450" width="1440" height="2" fill="url(#line)" opacity="0.28"></rect>
+
+  <!-- active flow -->
+  <rect x="140" y="330" width="520" height="3" fill="url(#active)" opacity="0.95"></rect>
+
+  <!-- mark -->
+  <g transform="translate(86,118)">
+    <rect x="0" y="0" width="118" height="118" rx="28" fill="#0a0a0a" stroke="#10b981" stroke-opacity="0.35" stroke-width="2"></rect>
+    <path d="M59 18 L94 38 L94 80 L59 100 L24 80 L24 38 Z" fill="none" stroke="#10b981" stroke-opacity="0.65" stroke-width="3"></path>
+    <circle cx="59" cy="59" r="7" fill="#34d399"></circle>
+  </g>
+
+  <!-- text -->
+  <g font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial" fill="#ffffff">
+    <text x="230" y="178" font-size="54" font-weight="700">Classic OS</text>
+    <text x="230" y="226" font-size="26" opacity="0.82">
+      The operating system for Ethereum Classic
+    </text>
+    <text x="230" y="270" font-size="20" opacity="0.70">
+      Mining • Capital Deployment • Market Formation • Settlement
+    </text>
+  </g>
+</svg>
