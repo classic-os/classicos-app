@@ -19,7 +19,7 @@ export function NetworkStatus() {
     if (!isConnected) {
         return (
             <div className="hidden md:inline-flex items-center rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-xs text-white/70">
-                Network: —
+                Connected: —
             </div>
         );
     }
@@ -31,7 +31,7 @@ export function NetworkStatus() {
     if (!wrong) {
         return (
             <div className="hidden md:inline-flex items-center rounded-lg border border-[rgba(0,255,136,0.25)] bg-[rgba(0,255,136,0.08)] px-3 py-2 text-xs text-white">
-                {connected?.name ?? `Chain ${walletChainId}`}
+                Connected: {connected?.name ?? `Chain ${walletChainId}`}
             </div>
         );
     }
@@ -40,10 +40,16 @@ export function NetworkStatus() {
         <button
             onClick={() => switchChain({ chainId: activeChainId })}
             disabled={isPending}
-            className="hidden md:inline-flex items-center rounded-lg border border-[rgba(255,200,0,0.35)] bg-[rgba(255,200,0,0.10)] px-3 py-2 text-xs text-white transition hover:bg-[rgba(255,200,0,0.14)] disabled:opacity-60"
+            className="hidden md:inline-flex items-center gap-2 rounded-lg border border-[rgba(255,200,0,0.35)] bg-[rgba(255,200,0,0.10)] px-3 py-2 text-xs text-white transition hover:bg-[rgba(255,200,0,0.14)] disabled:opacity-60"
             title={`Connected: ${connected?.name ?? walletChainId}. Active: ${active?.name ?? activeChainId}.`}
         >
-            Wrong network — Switch
+            <span className="text-white/80">
+                Connected: {connected?.name ?? `Chain ${walletChainId}`}
+            </span>
+            <span className="text-white/40">→</span>
+            <span className="text-white/90">
+                Switch to {active?.name ?? `Chain ${activeChainId}`}
+            </span>
         </button>
     );
 }

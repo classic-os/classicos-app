@@ -4,6 +4,7 @@ import { ReactNode } from "react";
 import BackgroundSystem from "@/components/layout/BackgroundSystem";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { TopBar } from "@/components/layout/TopBar";
+import { FooterStatus } from "@/components/layout/FooterStatus";
 
 export function AppShell({ children }: { children: ReactNode }) {
     return (
@@ -30,10 +31,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                             <footer className="border-t border-white/10 bg-black/18 px-4 py-3 text-xs text-white/55 md:px-6">
                                 <div className="flex items-center justify-between gap-3">
                                     <div>Ethereum Classic • Proof-of-Work Smart Contracts</div>
-                                    <div className="flex items-center gap-3 text-white/40">
-                                        <span>Classic OS</span>
-                                        <span>Operational Surface</span>
-                                    </div>
+                                    <FooterStatus />
                                 </div>
                             </footer>
                         </div>

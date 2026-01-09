@@ -2,8 +2,8 @@
 
 import { usePathname } from "next/navigation";
 import { NAV_ITEMS } from "@/components/layout/NavItems";
+import { ActiveNetworkSelector } from "@/components/primitives/ActiveNetworkSelector";
 import { TestnetToggle } from "@/components/primitives/TestnetToggle";
-import { NetworkStatus } from "@/components/primitives/NetworkStatus";
 import { WalletConnector } from "@/components/primitives/WalletConnector";
 
 export function TopBar() {
@@ -23,8 +23,8 @@ export function TopBar() {
                 </div>
 
                 <div className="flex items-center gap-2">
+                    <ActiveNetworkSelector />
                     <TestnetToggle />
-                    <NetworkStatus />
                     <WalletConnector />
                 </div>
             </div>
