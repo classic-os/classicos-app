@@ -18,7 +18,7 @@ export default function DeployPage() {
                 ]}
             />
 
-            <RequirementGate mode="ETC_ONLY">
+            <RequirementGate>
                 <div className="grid gap-4 lg:grid-cols-2">
                     <Panel title="Source" description="Select wallet balance or routed rewards source.">
                         <EmptyState

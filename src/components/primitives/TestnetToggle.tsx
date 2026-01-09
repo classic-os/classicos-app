@@ -1,26 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { getTestnetsEnabled, setTestnetsEnabled } from "@/lib/state/testnets";
+import { useSyncExternalStore } from "react";
+import { getShowTestnets, setShowTestnets, subscribeWorkspace } from "@/lib/state/workspace";
 
 export function TestnetToggle() {
-    const [enabled, setEnabled] = useState(false);
+    const enabled = useSyncExternalStore(subscribeWorkspace, getShowTestnets, () => false);
 
-    useEffect(() => setEnabled(getTestnetsEnabled()), []);
-
-    const toggle = () => {
-        const next = !enabled;
-        setEnabled(next);
-        setTestnetsEnabled(next);
-        window.location.reload();
-    };
+    const toggle = () => setShowTestnets(!enabled);
 
     return (
         <button
             onClick={toggle}
             className="inline-flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-xs text-white/80 transition hover:bg-white/10 hover:text-white"
             aria-pressed={enabled}
-            title={enabled ? "Testnets enabled (Mordor available)" : "Testnets disabled (mainnet only)"}
+            title={enabled ? "Show test networks" : "Hide test networks"}
         >
             <span className="text-white/60">Testnets</span>
             <span

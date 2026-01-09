@@ -18,7 +18,7 @@ export default function ProducePage() {
                 ]}
             />
 
-            <RequirementGate mode="ETC_OR_MORDOR">
+            <RequirementGate>
                 <div className="grid gap-4 lg:grid-cols-2">
                     <Panel title="Mining Destination" description="Select direct, pool, or distributed routing.">
                         <EmptyState

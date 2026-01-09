@@ -1,28 +1,20 @@
 import { createConfig, http } from "wagmi";
 import { injected } from "wagmi/connectors";
-import type { Chain } from "viem";
-import { ethereumClassic, mordor } from "@/lib/chain/chains";
+import { CHAINS, NETWORKS } from "@/lib/networks/registry";
 
-type NonEmptyChains = readonly [Chain, ...Chain[]];
-
-export function makeWagmiConfig(testnetsEnabled: boolean) {
-    const chains = (testnetsEnabled
-        ? [ethereumClassic, mordor]
-        : [ethereumClassic]) as NonEmptyChains;
+export function makeWagmiConfig() {
+    const transports = Object.fromEntries(
+        NETWORKS.map((n) => [n.chain.id, http(n.chain.rpcUrls.default.http[0])])
+    );
 
     return createConfig({
-        chains,
+        chains: CHAINS,
         connectors: [
             injected({
                 shimDisconnect: true,
             }),
         ],
-        transports: {
-            [ethereumClassic.id]: http(ethereumClassic.rpcUrls.default.http[0]),
-            ...(testnetsEnabled
-                ? { [mordor.id]: http(mordor.rpcUrls.default.http[0]) }
-                : {}),
-        },
+        transports,
         ssr: true,
     });
 }

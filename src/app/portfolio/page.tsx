@@ -17,7 +17,7 @@ export default function PortfolioPage() {
                 ]}
             />
 
-            <RequirementGate mode="ETC_OR_MORDOR">
+            <RequirementGate>
                 <div className="grid gap-4 lg:grid-cols-2">
                     <Panel title="Balances" description="Wallet and routed balances (explicit).">
                         <EmptyState

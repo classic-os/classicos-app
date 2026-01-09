@@ -1,15 +1,20 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import { useAccount, useChainId, useSwitchChain } from "wagmi";
-import { CHAIN_IDS, ethereumClassic, mordor } from "@/lib/chain/chains";
-import { getTestnetsEnabled, setTestnetsEnabled } from "@/lib/state/testnets";
+import { CHAINS_BY_ID, DEFAULT_ACTIVE_CHAIN_ID } from "@/lib/networks/registry";
+import { getActiveChainId, subscribeWorkspace } from "@/lib/state/workspace";
 
 export function NetworkStatus() {
     const { isConnected } = useAccount();
-    const chainId = useChainId();
+    const walletChainId = useChainId();
     const { switchChain, isPending } = useSwitchChain();
 
-    const testnetsEnabled = typeof window === "undefined" ? false : getTestnetsEnabled();
+    const activeChainId = useSyncExternalStore(
+        subscribeWorkspace,
+        getActiveChainId,
+        () => DEFAULT_ACTIVE_CHAIN_ID
+    );
 
     if (!isConnected) {
         return (
@@ -19,49 +24,26 @@ export function NetworkStatus() {
         );
     }
 
-    const isETC = chainId === CHAIN_IDS.ETC;
-    const isMordor = chainId === CHAIN_IDS.MORDOR;
+    const connected = CHAINS_BY_ID[walletChainId];
+    const active = CHAINS_BY_ID[activeChainId];
+    const wrong = walletChainId !== activeChainId;
 
-    if (isETC) {
+    if (!wrong) {
         return (
             <div className="hidden md:inline-flex items-center rounded-lg border border-[rgba(0,255,136,0.25)] bg-[rgba(0,255,136,0.08)] px-3 py-2 text-xs text-white">
-                ETC Mainnet
+                {connected?.name ?? `Chain ${walletChainId}`}
             </div>
         );
     }
 
-    if (isMordor) {
-        if (!testnetsEnabled) {
-            return (
-                <button
-                    onClick={() => {
-                        setTestnetsEnabled(true);
-                        window.location.reload();
-                    }}
-                    className="hidden md:inline-flex items-center rounded-lg border border-[rgba(255,200,0,0.35)] bg-[rgba(255,200,0,0.10)] px-3 py-2 text-xs text-white transition hover:bg-[rgba(255,200,0,0.14)]"
-                    title="You are on Mordor, but testnets are disabled. Enable testnets to proceed."
-                >
-                    Testnets disabled — Enable
-                </button>
-            );
-        }
-
-        return (
-            <div className="hidden md:inline-flex items-center rounded-lg border border-[rgba(255,200,0,0.35)] bg-[rgba(255,200,0,0.10)] px-3 py-2 text-xs text-white">
-                Mordor Testnet
-            </div>
-        );
-    }
-
-    // wrong network
     return (
         <button
-            onClick={() => switchChain({ chainId: CHAIN_IDS.ETC })}
+            onClick={() => switchChain({ chainId: activeChainId })}
             disabled={isPending}
             className="hidden md:inline-flex items-center rounded-lg border border-[rgba(255,200,0,0.35)] bg-[rgba(255,200,0,0.10)] px-3 py-2 text-xs text-white transition hover:bg-[rgba(255,200,0,0.14)] disabled:opacity-60"
-            title="Switch to Ethereum Classic to use ClassicOS."
+            title={`Connected: ${connected?.name ?? walletChainId}. Active: ${active?.name ?? activeChainId}.`}
         >
-            Wrong network — Switch to ETC
+            Wrong network — Switch
         </button>
     );
 }

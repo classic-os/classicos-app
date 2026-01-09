@@ -18,7 +18,7 @@ export default function MarketsPage() {
                 ]}
             />
 
-            <RequirementGate mode="ETC_ONLY">
+            <RequirementGate>
                 <div className="grid gap-4 lg:grid-cols-2">
                     <Panel title="Create Asset" description="ERC-20 deployment via minimal web form.">
                         <EmptyState
