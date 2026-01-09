@@ -29,9 +29,9 @@ export default function Home() {
       className="space-y-6"
     >
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight">ClassicOS</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">Classic OS</h1>
         <p className="mt-2 max-w-2xl text-sm text-white/70">
-          System ready. Select an operation. ClassicOS is ETC-first with explicit, auditable states.
+          System ready. Select an operation. Classic OS is ETC-first with explicit, auditable states.
         </p>
       </div>
 

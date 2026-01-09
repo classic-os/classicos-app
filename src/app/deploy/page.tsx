@@ -1,48 +1,58 @@
 "use client";
 
+import { useMemo, useSyncExternalStore } from "react";
+
 import { ModuleHeader } from "@/components/ui/ModuleHeader";
 import { Panel } from "@/components/ui/Panel";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { RequirementGate } from "@/components/ui/RequirementGate";
 
+import { getEcosystem } from "@/lib/ecosystems/registry";
+import { getActiveChainId, subscribeWorkspace } from "@/lib/state/workspace";
+
 export default function DeployPage() {
+    const activeChainId = useSyncExternalStore(
+        subscribeWorkspace,
+        getActiveChainId,
+        () => getActiveChainId()
+    );
+
+    const ecosystem = useMemo(() => getEcosystem(activeChainId), [activeChainId]);
+
+    if (!ecosystem.capabilities.deploy) {
+        return (
+            <div className="space-y-6">
+                <ModuleHeader title="Deploy" subtitle={`Active: ${ecosystem.shortName}`} />
+                <EmptyState
+                    title="Deploy adapters not available yet"
+                    body="This ecosystem does not have deployment surfaces wired yet. ClassicOS will surface lending, LP, and routing adapters per-network as they’re implemented."
+                />
+                {ecosystem.observability.blockExplorer?.url ? (
+                    <Panel>
+                        <div className="text-sm">
+                            Explorer:{" "}
+                            <a
+                                className="underline"
+                                href={ecosystem.observability.blockExplorer.url}
+                                target="_blank"
+                                rel="noreferrer"
+                            >
+                                {ecosystem.observability.blockExplorer.name}
+                            </a>
+                        </div>
+                    </Panel>
+                ) : null}
+            </div>
+        );
+    }
+
     return (
-        <div>
-            <ModuleHeader
-                title="Deploy"
-                subtitle="Route ETC into productive on-chain use. Preview routes, execute transactions, and track resulting positions."
-                chips={[
-                    { label: "ETC mainnet", tone: "good" },
-                    { label: "Routes: preview-first", tone: "neutral" },
-                    { label: "Tx lifecycle: scaffold", tone: "neutral" },
-                ]}
-            />
-
+        <div className="space-y-6">
+            <ModuleHeader title="Deploy" subtitle={`Active: ${ecosystem.shortName}`} />
             <RequirementGate>
-                <div className="grid gap-4 lg:grid-cols-2">
-                    <Panel title="Source" description="Select wallet balance or routed rewards source.">
-                        <EmptyState
-                            title="No sources configured"
-                            body="Wallet sources are available once connected. Routed reward sources require a mining adapter."
-                        />
-                    </Panel>
-
-                    <Panel title="Route Preview" description="Inputs, fees, and expected outputs (explicit).">
-                        <EmptyState
-                            title="No route adapters configured"
-                            body="This environment has no deploy route adapters configured yet. The preview panel will become active when adapters are added."
-                        />
-                    </Panel>
-                </div>
-
-                <div className="mt-4">
-                    <Panel title="Execution" description="Transaction confirmation, pending state, receipt, and revert handling.">
-                        <EmptyState
-                            title="Execution disabled"
-                            body="No route adapter is configured in this environment. Connect an adapter to enable execution."
-                        />
-                    </Panel>
-                </div>
+                <Panel>
+                    <div className="text-sm opacity-80">Deploy adapters are enabled for this ecosystem.</div>
+                </Panel>
             </RequirementGate>
         </div>
     );

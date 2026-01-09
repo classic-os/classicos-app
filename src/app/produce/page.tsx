@@ -1,49 +1,48 @@
 "use client";
 
+import { useMemo, useSyncExternalStore } from "react";
+
 import { ModuleHeader } from "@/components/ui/ModuleHeader";
 import { Panel } from "@/components/ui/Panel";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { RequirementGate } from "@/components/ui/RequirementGate";
 
+import { getEcosystem } from "@/lib/ecosystems/registry";
+import { getActiveChainId, subscribeWorkspace } from "@/lib/state/workspace";
+
 export default function ProducePage() {
+    const activeChainId = useSyncExternalStore(
+        subscribeWorkspace,
+        getActiveChainId,
+        () => getActiveChainId()
+    );
+
+    const ecosystem = useMemo(() => getEcosystem(activeChainId), [activeChainId]);
+    const mode = ecosystem.capabilities.produce;
+
     return (
-        <div>
+        <div className="space-y-6">
             <ModuleHeader
                 title="Produce"
-                subtitle="Mining entry and reward routing. Configure destinations and observe routing state."
-                chips={[
-                    { label: "ETC-first", tone: "good" },
-                    { label: "Adapters: scaffold", tone: "neutral" },
-                    { label: "Explicit states", tone: "neutral" },
-                ]}
+                subtitle={`Active: ${ecosystem.shortName} • Mode: ${mode === "mine" ? "Mining (PoW)" : mode === "stake" ? "Staking (PoS)" : "Unavailable"
+                    }`}
             />
 
-            <RequirementGate>
-                <div className="grid gap-4 lg:grid-cols-2">
-                    <Panel title="Mining Destination" description="Select direct, pool, or distributed routing.">
+            {mode === "none" ? (
+                <EmptyState
+                    title="Produce is not available on this network"
+                    body="This network has no registered production mode yet."
+                />
+            ) : (
+                <RequirementGate>
+                    <Panel>
                         <EmptyState
-                            title="No pool adapter configured"
-                            body="This environment has no mining/pool adapter configured yet. You can still set preferences once adapters are wired."
+                            title={mode === "mine" ? "Mining surfaces (coming online)" : "Staking surfaces (coming online)"}
+                            body="Phase 1 wires the OS truth layer. Production workflows land incrementally per ecosystem."
                         />
                     </Panel>
-
-                    <Panel title="Reward Routing" description="Route rewards to wallet or deployment module.">
-                        <EmptyState
-                            title="Routing state unavailable"
-                            body="Reward routing state is not connected in this environment. Once adapters are wired, this panel will show active routes and balances."
-                        />
-                    </Panel>
-                </div>
-
-                <div className="mt-4">
-                    <Panel title="Accumulation" description="Informational view of rewards and routing over time.">
-                        <EmptyState
-                            title="No reward stream detected"
-                            body="ClassicOS will show reward accumulation once a mining adapter is connected or a routed stream is detected."
-                        />
-                    </Panel>
-                </div>
-            </RequirementGate>
+                </RequirementGate>
+            )}
         </div>
     );
 }
