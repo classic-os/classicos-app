@@ -1,4 +1,4 @@
-import { DEFAULT_ACTIVE_CHAIN_ID } from "@/lib/networks/registry";
+import { CHAINS_BY_ID, DEFAULT_ACTIVE_CHAIN_ID } from "@/lib/networks/registry";
 
 const KEY_ACTIVE = "classicos:activeChainId";
 const KEY_SHOW_TESTNETS = "classicos:showTestnets";
@@ -25,16 +25,24 @@ export function subscribeWorkspace(callback: () => void) {
     };
 }
 
+function normalizeChainId(raw: string | null): number {
+    const n = raw ? Number(raw) : NaN;
+    if (!Number.isFinite(n)) return DEFAULT_ACTIVE_CHAIN_ID;
+    return CHAINS_BY_ID[n] ? n : DEFAULT_ACTIVE_CHAIN_ID;
+}
+
 export function getActiveChainId(): number {
     if (typeof window === "undefined") return DEFAULT_ACTIVE_CHAIN_ID;
-    const raw = window.localStorage.getItem(KEY_ACTIVE);
-    const n = raw ? Number(raw) : NaN;
-    return Number.isFinite(n) ? n : DEFAULT_ACTIVE_CHAIN_ID;
+    return normalizeChainId(window.localStorage.getItem(KEY_ACTIVE));
 }
 
 export function setActiveChainId(chainId: number) {
     if (typeof window === "undefined") return;
-    window.localStorage.setItem(KEY_ACTIVE, String(chainId));
+
+    // Only persist known chains (prevents stale/invalid values from bricking UI)
+    const safe = CHAINS_BY_ID[chainId] ? chainId : DEFAULT_ACTIVE_CHAIN_ID;
+
+    window.localStorage.setItem(KEY_ACTIVE, String(safe));
     emitWorkspaceChange();
 }
 

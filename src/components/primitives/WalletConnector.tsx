@@ -1,20 +1,35 @@
 "use client";
 
-import { useAccount, useConnect, useDisconnect } from "wagmi";
+import { useMemo } from "react";
+import { useConnect, useDisconnect, useConnections } from "wagmi";
 import { injected } from "wagmi/connectors";
 
-export function WalletConnector() {
-    const { address, isConnected } = useAccount();
-    const { connect, isPending, error } = useConnect();
-    const { disconnect } = useDisconnect();
+function shortAddress(addr?: string) {
+    if (!addr) return "";
+    return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
+}
 
-    const short = address ? `${address.slice(0, 6)}…${address.slice(-4)}` : "";
+export function WalletConnector() {
+    const connections = useConnections();
+
+    // wagmi v3: connect/disconnect use mutate-style APIs
+    const { mutate: connect, isPending, error } = useConnect();
+    const { mutate: disconnect } = useDisconnect();
+
+    const address = useMemo(() => {
+        const first = connections?.[0];
+        const acct = first?.accounts?.[0];
+        return typeof acct === "string" ? acct : undefined;
+    }, [connections]);
+
+    const isConnected = Boolean(address);
+    const short = shortAddress(address);
 
     return (
         <div className="flex items-center gap-2">
             {error ? (
                 <span className="hidden md:inline text-xs text-[rgb(var(--bad))]">
-                    {error.message.slice(0, 64)}
+                    {String(error.message).slice(0, 64)}
                 </span>
             ) : null}
 

@@ -2,7 +2,8 @@
 
 import { useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
-import { useAccount, useChainId, useSwitchChain } from "wagmi";
+import { useChainId, useConnections, useSwitchChain } from "wagmi";
+import { themeForChainId } from "@/lib/networks/theme";
 
 import {
     CHAINS_BY_ID,
@@ -41,42 +42,35 @@ function splitNetworks(showTestnets: boolean) {
 }
 
 // Visual language:
-// - ETC mainnet selected: green
-// - ETH mainnet selected: purple
-// - Any testnet selected: yellow
+// - Active network uses global --accent
+// - Testnets always yellow
 function selectedRowClass(net: Network) {
-    if (net.kind === "testnet") {
-        return "bg-[rgba(255,200,0,0.12)] text-white";
-    }
-    if (net.anchor === "ETH_POS") {
-        return "bg-[rgba(155,81,224,0.18)] text-white"; // ETH purple
-    }
-    return "bg-[rgba(0,255,136,0.10)] text-white"; // ETC green
+    if (net.kind === "testnet") return "bg-[rgba(255,200,0,0.12)] text-white";
+    return "bg-white/[0.05] text-white";
 }
 
 function selectedBadgeClass(net: Network) {
     if (net.kind === "testnet") return "text-[rgba(255,200,0,0.9)]";
-    if (net.anchor === "ETH_POS") return "text-[rgba(180,130,255,0.95)]";
     return "text-[rgb(var(--accent))]";
 }
 
 function dotStyle(net: Network) {
+    // Testnets stay yellow (environmental warning)
     if (net.kind === "testnet") {
         return {
             backgroundColor: "rgba(255,200,0,0.95)",
             boxShadow: "0 0 14px rgba(255,200,0,0.35)",
-        };
+        } as const;
     }
-    if (net.anchor === "ETH_POS") {
-        return {
-            backgroundColor: "rgba(155,81,224,0.95)",
-            boxShadow: "0 0 14px rgba(155,81,224,0.35)",
-        };
-    }
+
+    // Mainnets & L2s: use network family theme (ETH purple, ETC green, etc)
+    const t = themeForChainId(net.chain.id);
+    const rgb = t.accentRgb;
+
     return {
-        backgroundColor: "rgba(0,255,136,0.95)",
-        boxShadow: "0 0 14px rgba(0,255,136,0.30)",
-    };
+        backgroundColor: `rgb(${rgb})`,
+        boxShadow: `0 0 14px ${t.accentGlow}`,
+    } as const;
 }
 
 export function ActiveNetworkSelector() {
@@ -84,9 +78,13 @@ export function ActiveNetworkSelector() {
     const [open, setOpen] = useState(false);
     const [pos, setPos] = useState<{ top: number; right: number } | null>(null);
 
-    const { isConnected } = useAccount();
+    const connections = useConnections();
     const walletChainId = useChainId();
-    const { switchChain, isPending } = useSwitchChain();
+
+    // wagmi v3: `switchChain` is deprecated; use mutateAsync
+    const { mutateAsync: switchChainAsync, isPending } = useSwitchChain();
+
+    const isConnected = Boolean(connections?.[0]?.accounts?.[0]);
 
     const activeChainId = useSyncExternalStore(
         subscribeWorkspace,
@@ -130,11 +128,13 @@ export function ActiveNetworkSelector() {
     const select = async (chainId: number) => {
         setActiveChainId(chainId);
 
-        if (isConnected && walletChainId !== chainId && switchChain) {
+        // If connected, attempt wallet switch as a convenience.
+        // Active selection remains even if user rejects the wallet prompt.
+        if (isConnected && walletChainId !== chainId) {
             try {
-                await switchChain({ chainId });
+                await switchChainAsync({ chainId });
             } catch {
-                // keep Active set even if wallet switch fails/rejected
+                // ignore
             }
         }
 
@@ -149,9 +149,9 @@ export function ActiveNetworkSelector() {
                 disabled={isPending}
                 className="inline-flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-xs text-white/80 transition hover:bg-white/10 hover:text-white disabled:opacity-60"
                 aria-expanded={open}
-                title="Select Active Network"
+                title="Select active network"
             >
-                <span className="text-white/60">Active</span>
+                <span className="text-white/60">Network</span>
                 <span className="text-white/90">
                     {activeChain?.name ?? `Chain ${activeChainId}`}
                 </span>
@@ -173,10 +173,10 @@ export function ActiveNetworkSelector() {
                         >
                             <div className="border-b border-white/10 px-3 py-2">
                                 <div className="text-xs font-semibold text-white/85">
-                                    Active Network
+                                    Workspace network
                                 </div>
                                 <div className="text-[11px] text-white/50">
-                                    Selecting a network will also prompt your wallet to switch.
+                                    Sets the active network. If a wallet is connected, you&apos;ll be prompted to switch.
                                 </div>
                             </div>
 
@@ -189,7 +189,8 @@ export function ActiveNetworkSelector() {
                                     {mainnets.map((m) => {
                                         const id = m.chain.id;
                                         const selected = activeChainId === id;
-                                        const hasTestnets = (testnetsByParent.get(id) ?? []).length > 0;
+                                        const hasTestnets =
+                                            (testnetsByParent.get(id) ?? []).length > 0;
 
                                         return (
                                             <div
@@ -224,7 +225,6 @@ export function ActiveNetworkSelector() {
                                                             {selected ? "Active" : "Select"}
                                                         </span>
 
-                                                        {/* OS-like accent dot */}
                                                         <span
                                                             className={[
                                                                 "h-2 w-2 rounded-full border border-white/15",
@@ -257,7 +257,7 @@ export function ActiveNetworkSelector() {
                                                                     <div className="min-w-0">
                                                                         <div className="truncate">{t.chain.name}</div>
                                                                         <div className="truncate text-[11px] text-white/45">
-                                                                            Testnet • Chain ID {tid}
+                                                                            Test environment • Chain ID {tid}
                                                                         </div>
                                                                     </div>
 
@@ -265,15 +265,12 @@ export function ActiveNetworkSelector() {
                                                                         <span
                                                                             className={[
                                                                                 "text-[11px]",
-                                                                                tsel
-                                                                                    ? selectedBadgeClass(t)
-                                                                                    : "text-white/35",
+                                                                                tsel ? selectedBadgeClass(t) : "text-white/40",
                                                                             ].join(" ")}
                                                                         >
                                                                             {tsel ? "Active" : "Select"}
                                                                         </span>
 
-                                                                        {/* OS-like accent dot */}
                                                                         <span
                                                                             className={[
                                                                                 "h-2 w-2 rounded-full border border-white/15",

@@ -75,8 +75,8 @@ export function Sidebar() {
             {/* Footer strip */}
             <div className="border-t border-white/10 px-4 py-3 text-xs text-white/45">
                 <div className="flex items-center justify-between">
-                    <span>Classic OS</span>
-                    <span className="text-white/35">v0.1</span>
+                    <span>Classic OS v.01</span>
+                    <span className="text-white/35">Economic Operating System</span>
                 </div>
             </div>
         </div>

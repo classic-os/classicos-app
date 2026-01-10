@@ -10,6 +10,12 @@ import { RequirementGate } from "@/components/ui/RequirementGate";
 import { getEcosystem } from "@/lib/ecosystems/registry";
 import { getActiveChainId, subscribeWorkspace } from "@/lib/state/workspace";
 
+function modeLabel(mode: "mine" | "stake" | "none") {
+    if (mode === "mine") return "Mining (Proof-of-Work)";
+    if (mode === "stake") return "Staking (Proof-of-Stake)";
+    return "—";
+}
+
 export default function ProducePage() {
     const activeChainId = useSyncExternalStore(
         subscribeWorkspace,
@@ -24,21 +30,20 @@ export default function ProducePage() {
         <div className="space-y-6">
             <ModuleHeader
                 title="Produce"
-                subtitle={`Active: ${ecosystem.shortName} • Mode: ${mode === "mine" ? "Mining (PoW)" : mode === "stake" ? "Staking (PoS)" : "Unavailable"
-                    }`}
+                subtitle={`Active: ${ecosystem.shortName} • Mode: ${modeLabel(mode)}`}
             />
 
             {mode === "none" ? (
                 <EmptyState
-                    title="Produce is not available on this network"
-                    body="This network has no registered production mode yet."
+                    title="Produce not supported on this network"
+                    body="This network does not expose a production mode in the current registry."
                 />
             ) : (
                 <RequirementGate>
                     <Panel>
                         <EmptyState
-                            title={mode === "mine" ? "Mining surfaces (coming online)" : "Staking surfaces (coming online)"}
-                            body="Phase 1 wires the OS truth layer. Production workflows land incrementally per ecosystem."
+                            title="Production workflows not registered"
+                            body="This network defines a production mode, but no production adapters are registered yet."
                         />
                     </Panel>
                 </RequirementGate>

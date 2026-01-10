@@ -17,6 +17,9 @@ export function EmptyState({
         <div className="rounded-2xl border border-white/10 bg-black/16 p-4 text-sm text-white/70">
             <div className="text-sm font-semibold text-white/85">{title}</div>
             <div className="mt-2 text-sm text-white/65">{body}</div>
+            <div className="mt-3 text-[11px] text-white/45">
+                Availability depends on the active network.
+            </div>
             {actionLabel && actionHref ? (
                 <div className="mt-3">
                     <Link

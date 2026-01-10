@@ -24,15 +24,15 @@ export default function DeployPage() {
             <div className="space-y-6">
                 <ModuleHeader title="Deploy" subtitle={`Active: ${ecosystem.shortName}`} />
                 <EmptyState
-                    title="Deploy adapters not available yet"
-                    body="This ecosystem does not have deployment surfaces wired yet. ClassicOS will surface lending, LP, and routing adapters per-network as they’re implemented."
+                    title="Deploy not supported on this network"
+                    body="No deployment surfaces are registered for the active network."
                 />
                 {ecosystem.observability.blockExplorer?.url ? (
-                    <Panel>
-                        <div className="text-sm">
-                            Explorer:{" "}
+                    <Panel title="Observability" description="External network surface">
+                        <div className="text-sm text-white/70">
+                            Block explorer:{" "}
                             <a
-                                className="underline"
+                                className="underline text-white/85"
                                 href={ecosystem.observability.blockExplorer.url}
                                 target="_blank"
                                 rel="noreferrer"
@@ -51,7 +51,7 @@ export default function DeployPage() {
             <ModuleHeader title="Deploy" subtitle={`Active: ${ecosystem.shortName}`} />
             <RequirementGate>
                 <Panel>
-                    <div className="text-sm opacity-80">Deploy adapters are enabled for this ecosystem.</div>
+                    <div className="text-sm text-white/70">Deploy surfaces are available for this network.</div>
                 </Panel>
             </RequirementGate>
         </div>

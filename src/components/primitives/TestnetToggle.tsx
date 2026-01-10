@@ -13,7 +13,7 @@ export function TestnetToggle() {
             onClick={toggle}
             className="inline-flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-xs text-white/80 transition hover:bg-white/10 hover:text-white"
             aria-pressed={enabled}
-            title={enabled ? "Show test networks" : "Hide test networks"}
+            title={enabled ? "Hide testnets" : "Show testnets"}
         >
             <span className="text-white/60">Testnets</span>
             <span

@@ -1,11 +1,15 @@
 import type { Chain } from "viem";
 
-export type AnchorKey = "ETC_POW" | "ETH_POS";
+/**
+ * Network grouping used for UI + capability defaults.
+ * (Internal concept — keep it out of user-facing copy.)
+ */
+export type NetworkFamilyKey = "ETC_POW" | "ETH_POS";
 export type NetworkKind = "mainnet" | "testnet" | "l2";
 
 export type Network = {
     chain: Chain;
-    anchor: AnchorKey;
+    family: NetworkFamilyKey;
     kind: NetworkKind;
     parentChainId?: number; // testnet or L2 parent
     shortName: string;
@@ -70,26 +74,26 @@ export const sepoliaTestnet: Chain = {
 export const NETWORKS: Network[] = [
     {
         chain: etcMainnet,
-        anchor: "ETC_POW",
+        family: "ETC_POW",
         kind: "mainnet",
         shortName: "ETC",
     },
     {
         chain: mordorTestnet,
-        anchor: "ETC_POW",
+        family: "ETC_POW",
         kind: "testnet",
         parentChainId: etcMainnet.id,
         shortName: "Mordor",
     },
     {
         chain: ethMainnet,
-        anchor: "ETH_POS",
+        family: "ETH_POS",
         kind: "mainnet",
         shortName: "ETH",
     },
     {
         chain: sepoliaTestnet,
-        anchor: "ETH_POS",
+        family: "ETH_POS",
         kind: "testnet",
         parentChainId: ethMainnet.id,
         shortName: "Sepolia",
@@ -103,14 +107,19 @@ export const CHAINS_BY_ID: Record<number, Chain> = Object.fromEntries(
 
 export const DEFAULT_ACTIVE_CHAIN_ID = etcMainnet.id;
 
-// Grouping metadata for UI (selector later)
-export const ANCHORS: Record<AnchorKey, { title: string; description: string }> = {
+/**
+ * Grouping metadata (UI + defaults). Avoid internal jargon in copy.
+ */
+export const NETWORK_FAMILIES: Record<
+    NetworkFamilyKey,
+    { title: string; description: string }
+> = {
     ETC_POW: {
-        title: "Ethereum Classic (PoW Anchor)",
-        description: "Mining, PoW security, and emerging on-chain economic stack.",
+        title: "Ethereum Classic (Proof-of-Work)",
+        description: "Mining-first network with an emerging on-chain economic stack.",
     },
     ETH_POS: {
-        title: "Ethereum (PoS Anchor)",
-        description: "Liquidity-dense ecosystem with staking and mature protocols.",
+        title: "Ethereum (Proof-of-Stake)",
+        description: "Liquidity-dense ecosystem with mature protocol surfaces.",
     },
 };

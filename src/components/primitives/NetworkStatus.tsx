@@ -1,14 +1,23 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
-import { useAccount, useChainId, useSwitchChain } from "wagmi";
+import { useMemo, useSyncExternalStore } from "react";
+import { useChainId, useConnections, useSwitchChain } from "wagmi";
+
 import { CHAINS_BY_ID, DEFAULT_ACTIVE_CHAIN_ID } from "@/lib/networks/registry";
 import { getActiveChainId, subscribeWorkspace } from "@/lib/state/workspace";
 
 export function NetworkStatus() {
-    const { isConnected } = useAccount();
+    const connections = useConnections();
     const walletChainId = useChainId();
-    const { switchChain, isPending } = useSwitchChain();
+
+    // wagmi v3: `switchChain` is deprecated; use mutate/mutateAsync
+    const { mutate: switchChain, isPending } = useSwitchChain();
+
+    const isConnected = useMemo(() => {
+        const first = connections?.[0];
+        const acct = first?.accounts?.[0];
+        return typeof acct === "string" && acct.length > 0;
+    }, [connections]);
 
     const activeChainId = useSyncExternalStore(
         subscribeWorkspace,
@@ -16,40 +25,32 @@ export function NetworkStatus() {
         () => DEFAULT_ACTIVE_CHAIN_ID
     );
 
-    if (!isConnected) {
-        return (
-            <div className="hidden md:inline-flex items-center rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-xs text-white/70">
-                Connected: —
-            </div>
-        );
-    }
-
     const connected = CHAINS_BY_ID[walletChainId];
     const active = CHAINS_BY_ID[activeChainId];
-    const wrong = walletChainId !== activeChainId;
 
-    if (!wrong) {
-        return (
-            <div className="hidden md:inline-flex items-center rounded-lg border border-[rgba(0,255,136,0.25)] bg-[rgba(0,255,136,0.08)] px-3 py-2 text-xs text-white">
-                Connected: {connected?.name ?? `Chain ${walletChainId}`}
-            </div>
-        );
-    }
+    const mismatch = isConnected && walletChainId !== activeChainId;
 
     return (
-        <button
-            onClick={() => switchChain({ chainId: activeChainId })}
-            disabled={isPending}
-            className="hidden md:inline-flex items-center gap-2 rounded-lg border border-[rgba(255,200,0,0.35)] bg-[rgba(255,200,0,0.10)] px-3 py-2 text-xs text-white transition hover:bg-[rgba(255,200,0,0.14)] disabled:opacity-60"
-            title={`Connected: ${connected?.name ?? walletChainId}. Active: ${active?.name ?? activeChainId}.`}
-        >
-            <span className="text-white/80">
-                Connected: {connected?.name ?? `Chain ${walletChainId}`}
+        <div className="flex items-center gap-2 text-xs text-white/65">
+            <span className="text-white/45">Network</span>
+
+            <span
+                className="rounded-md border border-white/10 bg-white/[0.04] px-2 py-1 text-white/85"
+                title={`Connected: ${connected?.name ?? walletChainId}. Active: ${active?.name ?? activeChainId}.`}
+            >
+                {active?.name ?? `Chain ${activeChainId}`}
             </span>
-            <span className="text-white/40">→</span>
-            <span className="text-white/90">
-                Switch to {active?.name ?? `Chain ${activeChainId}`}
-            </span>
-        </button>
+
+            {mismatch ? (
+                <button
+                    onClick={() => switchChain({ chainId: activeChainId })}
+                    disabled={isPending}
+                    className="rounded-md border border-[rgba(255,200,0,0.35)] bg-[rgba(255,200,0,0.10)] px-2 py-1 text-[11px] text-white/85 transition hover:bg-[rgba(255,200,0,0.14)] disabled:opacity-60"
+                    title={`Wallet is on ${connected?.name ?? walletChainId}. Click to switch to ${active?.name ?? activeChainId}.`}
+                >
+                    Switch wallet
+                </button>
+            ) : null}
+        </div>
     );
 }

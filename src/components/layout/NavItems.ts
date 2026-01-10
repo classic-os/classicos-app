@@ -9,9 +9,9 @@ export type NavItem = {
 };
 
 export const NAV_ITEMS: NavItem[] = [
-    { href: "/", label: "Home", icon: Home, description: "Start screen and system status." },
-    { href: "/produce", label: "Produce", icon: Pickaxe, description: "Mining entry + reward routing." },
-    { href: "/deploy", label: "Deploy", icon: Route, description: "Route ETC into productive use." },
-    { href: "/markets", label: "Markets", icon: Layers, description: "Create assets and form markets." },
-    { href: "/portfolio", label: "Portfolio", icon: Wallet, description: "Balances, positions, activity." },
+    { href: "/", label: "Home", icon: Home, description: "Workspace status and available modules." },
+    { href: "/produce", label: "Produce", icon: Pickaxe, description: "Production mode by network (mine or stake)." },
+    { href: "/deploy", label: "Deploy", icon: Route, description: "Route capital into available strategies." },
+    { href: "/markets", label: "Markets", icon: Layers, description: "Asset creation and market formation surfaces." },
+    { href: "/portfolio", label: "Portfolio", icon: Wallet, description: "Balances, positions, and activity views." },
 ];

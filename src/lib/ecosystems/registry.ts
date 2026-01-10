@@ -7,7 +7,7 @@
 //
 // Pages/modules should call getEcosystem(activeChainId) and render capability-driven UI.
 
-import type { AnchorKey, NetworkKind } from "../networks/registry";
+import type { NetworkFamilyKey, NetworkKind } from "../networks/registry";
 import { CHAINS_BY_ID, NETWORKS } from "../networks/registry";
 
 export type EcosystemId =
@@ -58,7 +58,7 @@ export type Ecosystem = {
     chainId: number;
 
     // classification & grouping
-    anchor: AnchorKey;
+    family: NetworkFamilyKey;
     kind: NetworkKind;
 
     // UI strings
@@ -107,11 +107,12 @@ function ecosystemIdFor(chainId: number): EcosystemId {
  *
  * You can flip these to true incrementally as adapters/surfaces land.
  */
-function capabilitiesFor(chainId: number, anchor: AnchorKey, kind: NetworkKind): EcosystemCapabilities {
+function capabilitiesFor(chainId: number, family: NetworkFamilyKey, kind: NetworkKind): EcosystemCapabilities {
     const isTestnet = kind === "testnet";
 
-    // Produce mode is anchored (ETC PoW = mine, ETH PoS = stake)
-    const produce: ProduceMode = anchor === "ETC_POW" ? "mine" : anchor === "ETH_POS" ? "stake" : "none";
+    // Produce mode is derived from the network family (ETC PoW = mine, ETH PoS = stake)
+    const produce: ProduceMode =
+        family === "ETC_POW" ? "mine" : family === "ETH_POS" ? "stake" : "none";
 
     return {
         produce,
@@ -127,11 +128,6 @@ function capabilitiesFor(chainId: number, anchor: AnchorKey, kind: NetworkKind):
             // explicit for UI copy or iconography
             produceMine: produce === "mine",
             produceStake: produce === "stake",
-
-            // room for later without breaking pages:
-            // deployLending: false,
-            // marketsDex: false,
-            // portfolioIndexer: false,
         },
     };
 }
@@ -143,15 +139,15 @@ function capabilitiesFor(chainId: number, anchor: AnchorKey, kind: NetworkKind):
 function descriptionFor(id: EcosystemId): string | undefined {
     switch (id) {
         case "etc-mainnet":
-            return "Proof-of-Work ETC mainnet. Mining-first anchor with an emerging on-chain economic stack.";
+            return "Ethereum Classic mainnet. Proof-of-Work production with an emerging on-chain economic stack.";
         case "etc-mordor":
-            return "ETC testnet for transactions, UX validation, and adapter development.";
+            return "Ethereum Classic test environment for transactions, UX validation, and adapter development.";
         case "eth-mainnet":
-            return "Proof-of-Stake ETH mainnet. Liquidity-dense ecosystem with mature protocol stacks.";
+            return "Ethereum mainnet. Proof-of-Stake production with mature protocol and liquidity surfaces.";
         case "eth-sepolia":
-            return "ETH testnet for transactions, UX validation, and adapter development.";
+            return "Ethereum test environment for transactions, UX validation, and adapter development.";
         default:
-            return "No ecosystem registry entry exists for this chain yet.";
+            return "No ecosystem registry entry exists for this network yet.";
     }
 }
 
@@ -161,12 +157,12 @@ function descriptionFor(id: EcosystemId): string | undefined {
 export const ECOSYSTEMS: EcosystemRegistry = Object.fromEntries(
     NETWORKS.map((n) => {
         const id = ecosystemIdFor(n.chain.id);
-        const capabilities = capabilitiesFor(n.chain.id, n.anchor, n.kind);
+        const capabilities = capabilitiesFor(n.chain.id, n.family, n.kind);
 
         const ecosystem: Ecosystem = {
             id,
             chainId: n.chain.id,
-            anchor: n.anchor,
+            family: n.family,
             kind: n.kind,
 
             label: n.chain.name,
@@ -196,7 +192,7 @@ export const ECOSYSTEMS: EcosystemRegistry = Object.fromEntries(
 const UNKNOWN_ECOSYSTEM: Ecosystem = {
     id: "unknown",
     chainId: -1,
-    anchor: "ETC_POW",
+    family: "ETC_POW",
     kind: "mainnet",
     label: "Unknown Network",
     shortName: "Unknown",
