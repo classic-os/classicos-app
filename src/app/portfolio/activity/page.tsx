@@ -8,10 +8,6 @@ import { Panel } from "@/components/ui/Panel";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { RequirementGate } from "@/components/ui/RequirementGate";
 
-import { BalancesPanel } from "@/components/portfolio/BalancesPanel";
-import { PositionsPanel } from "@/components/portfolio/PositionsPanel";
-import { ActivityPanel } from "@/components/portfolio/ActivityPanel";
-
 import { getEcosystem } from "@/lib/ecosystems/registry";
 import { getActiveChainId, subscribeWorkspace } from "@/lib/state/workspace";
 
@@ -33,7 +29,7 @@ function ExternalObservability({ ecosystem }: { ecosystem: Ecosystem }) {
     );
 }
 
-export default function PortfolioPage() {
+export default function ActivityPage() {
     const activeChainId = useSyncExternalStore(subscribeWorkspace, getActiveChainId, () => getActiveChainId());
     const ecosystem = useMemo(() => getEcosystem(activeChainId), [activeChainId]);
 
@@ -54,22 +50,17 @@ export default function PortfolioPage() {
         <div className="space-y-6">
             <ModuleHeader title="Portfolio" subtitle={`Active: ${ecosystem.shortName}`} />
 
-            <div className="flex gap-3 text-xs">
-                <Link href="/portfolio/balances" className="text-white/70 underline hover:text-white">
-                    Balances
-                </Link>
-                <Link href="/portfolio/positions" className="text-white/70 underline hover:text-white">
-                    Positions
-                </Link>
-                <Link href="/portfolio/activity" className="text-white/70 underline hover:text-white">
-                    Activity
-                </Link>
-            </div>
+            <Link href="/portfolio" className="text-xs text-white/70 underline hover:text-white">
+                ← Back to Portfolio
+            </Link>
 
             <RequirementGate>
-                <BalancesPanel />
-                <PositionsPanel />
-                <ActivityPanel />
+                <Panel title="Activity" description="Recent transactions and events">
+                    <EmptyState
+                        title="No activity yet"
+                        body="When you deploy capital, create markets, or receive rewards, events will appear here."
+                    />
+                </Panel>
                 <ExternalObservability ecosystem={ecosystem} />
             </RequirementGate>
         </div>
