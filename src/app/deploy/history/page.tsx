@@ -8,10 +8,6 @@ import { Panel } from "@/components/ui/Panel";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { RequirementGate } from "@/components/ui/RequirementGate";
 
-import { SourcesPanel } from "@/components/deploy/SourcesPanel";
-import { RoutePanel } from "@/components/deploy/RoutePanel";
-import { HistoryPanel } from "@/components/deploy/HistoryPanel";
-
 import { getEcosystem } from "@/lib/ecosystems/registry";
 import { getActiveChainId, subscribeWorkspace } from "@/lib/state/workspace";
 
@@ -33,13 +29,8 @@ function ExternalObservability({ ecosystem }: { ecosystem: Ecosystem }) {
     );
 }
 
-export default function DeployPage() {
-    const activeChainId = useSyncExternalStore(
-        subscribeWorkspace,
-        getActiveChainId,
-        () => getActiveChainId()
-    );
-
+export default function HistoryPage() {
+    const activeChainId = useSyncExternalStore(subscribeWorkspace, getActiveChainId, () => getActiveChainId());
     const ecosystem = useMemo(() => getEcosystem(activeChainId), [activeChainId]);
 
     if (!ecosystem.capabilities.deploy) {
@@ -59,22 +50,17 @@ export default function DeployPage() {
         <div className="space-y-6">
             <ModuleHeader title="Deploy" subtitle={`Active: ${ecosystem.shortName}`} />
 
-            <div className="flex gap-3 text-xs">
-                <Link href="/deploy/sources" className="text-white/70 underline hover:text-white">
-                    Sources
-                </Link>
-                <Link href="/deploy/route" className="text-white/70 underline hover:text-white">
-                    Route
-                </Link>
-                <Link href="/deploy/history" className="text-white/70 underline hover:text-white">
-                    History
-                </Link>
-            </div>
+            <Link href="/deploy" className="text-xs text-white/70 underline hover:text-white">
+                ← Back to Deploy
+            </Link>
 
             <RequirementGate>
-                <SourcesPanel />
-                <RoutePanel />
-                <HistoryPanel />
+                <Panel title="Deployment History" description="Completed and pending deployments">
+                    <EmptyState
+                        title="No deployment history"
+                        body="Past deployments and execution status will appear here."
+                    />
+                </Panel>
                 <ExternalObservability ecosystem={ecosystem} />
             </RequirementGate>
         </div>
