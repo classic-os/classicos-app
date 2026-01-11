@@ -32,6 +32,7 @@ Follow agents/000-global-rules.md, agents/010-naming-and-prose.md, and agents/02
 | [030-web3-client-rules.md](030-web3-client-rules.md) | Wagmi/viem patterns, read-only hooks, adapters |
 | [040-readonly-data-patterns.md](040-readonly-data-patterns.md) | Adapter → Hook → UI pattern, empty states, explorer links |
 | [050-quality-and-checks.md](050-quality-and-checks.md) | Lint, build, diff checks; completion checklist |
+| [090-agentic-workflow.md](090-agentic-workflow.md) | Two-phase planning/implementation, stop conditions, commit discipline |
 
 ## Default Posture
 
@@ -46,3 +47,16 @@ Follow agents/000-global-rules.md, agents/010-naming-and-prose.md, and agents/02
 3. Propose minimal scoped change.
 4. Implement and validate: lint, build, diff.
 5. Output summary: files changed, why it's safe, what is deferred.
+
+## Default Invocation (Recommended)
+
+For any non-trivial work, start the Copilot prompt with:
+
+Follow all agents/* rules strictly.
+
+Then specify:
+- the scope (module, phase, or file set)
+- whether this is planning-only or implementation
+- the desired commit boundary
+
+If rules conflict with existing code, STOP and report the conflict before making changes.
