@@ -8,10 +8,6 @@ import { Panel } from "@/components/ui/Panel";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { RequirementGate } from "@/components/ui/RequirementGate";
 
-import { AssetsPanel } from "@/components/markets/AssetsPanel";
-import { FormationPanel } from "@/components/markets/FormationPanel";
-import { LiquidityPanel } from "@/components/markets/LiquidityPanel";
-
 import { getEcosystem } from "@/lib/ecosystems/registry";
 import { getActiveChainId, subscribeWorkspace } from "@/lib/state/workspace";
 
@@ -33,13 +29,8 @@ function ExternalObservability({ ecosystem }: { ecosystem: Ecosystem }) {
     );
 }
 
-export default function MarketsPage() {
-    const activeChainId = useSyncExternalStore(
-        subscribeWorkspace,
-        getActiveChainId,
-        () => getActiveChainId()
-    );
-
+export default function AssetsPage() {
+    const activeChainId = useSyncExternalStore(subscribeWorkspace, getActiveChainId, () => getActiveChainId());
     const ecosystem = useMemo(() => getEcosystem(activeChainId), [activeChainId]);
 
     if (!ecosystem.capabilities.markets) {
@@ -59,22 +50,17 @@ export default function MarketsPage() {
         <div className="space-y-6">
             <ModuleHeader title="Markets" subtitle={`Active: ${ecosystem.shortName}`} />
             
-            <div className="flex gap-3 text-xs">
-                <Link href="/markets/assets" className="text-white/70 underline hover:text-white">
-                    Assets
-                </Link>
-                <Link href="/markets/formation" className="text-white/70 underline hover:text-white">
-                    Formation
-                </Link>
-                <Link href="/markets/liquidity" className="text-white/70 underline hover:text-white">
-                    Liquidity
-                </Link>
-            </div>
+            <Link href="/markets" className="text-xs text-white/70 underline hover:text-white">
+                ← Back to Markets
+            </Link>
 
             <RequirementGate>
-                <AssetsPanel />
-                <FormationPanel />
-                <LiquidityPanel />
+                <Panel title="Assets" description="Token and asset issuance">
+                    <EmptyState
+                        title="No assets available"
+                        body="Token issuance and asset creation surfaces will appear here when supported."
+                    />
+                </Panel>
                 <ExternalObservability ecosystem={ecosystem} />
             </RequirementGate>
         </div>
