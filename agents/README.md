@@ -1,25 +1,48 @@
-# Agent Workspace (agents)
+# Agent Workspace
 
-This folder defines how agentic tools (Copilot Agent, etc.) should contribute safely.
+This folder defines operational constraints for AI-assisted edits to the ClassicOS app. These are not product documentation—they are behavioral rules that Copilot and other agents must follow.
 
-## Scope rules (must follow)
-Agents may:
-- Create and update files under `docs_local/` and `agents/`
-- Create/update module scaffolding only when explicitly prompted with file scope
+## What /agents is
 
-Agents must NOT:
-- Modify AppShell, Sidebar, registry logic, or shared utilities unless explicitly requested
-- Introduce execution logic (transactions, signing) without an explicit spec
-- Add new top-level navigation categories
+A rulepack for reproducible, safe, repo-aligned code changes. Use these rules to:
+- Prevent drift from repo conventions
+- Enforce naming and typing disciplines
+- Clarify scope boundaries
+- Validate quality before completion
 
-## Workflow requirements
-- Use two-phase prompting:
-  1) Repo review / alignment (no code changes)
-  2) Scoped implementation (only the requested folders/files)
-- Keep changes small and commit-scoped by phase.
-- After changes: run `npm run lint` (and `npm run build` when applicable).
+## How to use
 
-## Source of truth
-- Module availability is defined by `ecosystem.capabilities.*`
-- Produce mode is defined by `ecosystem.produce`
-- Workspace/active chain is read via `subscribeWorkspace` + `getActiveChainId`
+Every Copilot prompt should include:
+```
+Follow agents/<filename> strictly.
+```
+
+For example:
+```
+Follow agents/000-global-rules.md, agents/010-naming-and-prose.md, and agents/020-tooling-and-typescript.md strictly.
+```
+
+## Agent Files Index
+
+| File | Purpose |
+|------|---------|
+| [000-global-rules.md](000-global-rules.md) | Change control, scope boundaries, security posture |
+| [010-naming-and-prose.md](010-naming-and-prose.md) | Classic OS naming conventions, repo-wide checks |
+| [020-tooling-and-typescript.md](020-tooling-and-typescript.md) | TypeScript, BigInt, lint, toolchain verification |
+| [030-web3-client-rules.md](030-web3-client-rules.md) | Wagmi/viem patterns, read-only hooks, adapters |
+| [040-readonly-data-patterns.md](040-readonly-data-patterns.md) | Adapter → Hook → UI pattern, empty states, explorer links |
+| [050-quality-and-checks.md](050-quality-and-checks.md) | Lint, build, diff checks; completion checklist |
+
+## Default Posture
+
+- **Prefer smallest safe change.** No refactoring, no unrelated improvements.
+- **Stop when uncertain.** If scope, versions, or dependencies are unknown, do a read-only inventory first.
+- **No speculation.** Always verify file paths, API versions, and config before implementing.
+
+## Workflow
+
+1. Understand the request (read agents files).
+2. Inventory repo state (read package.json, tsconfig.json, existing patterns).
+3. Propose minimal scoped change.
+4. Implement and validate: lint, build, diff.
+5. Output summary: files changed, why it's safe, what is deferred.
