@@ -40,5 +40,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# architecture / planning docs (not tracked yet)
-/docs/
+# legacy scratch docs (do not track)
+docs/
