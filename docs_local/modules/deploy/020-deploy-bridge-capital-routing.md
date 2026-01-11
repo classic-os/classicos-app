@@ -1,4 +1,4 @@
-# Classic OS Deploy — Phase 7 Bridge Notes
+# Classic OS Deploy — Bridge Capital Routing (Planning)
 
 ## Purpose
 Capture early guidance for Deploy when capability enablement begins, without committing to specific bridges or onramps.
