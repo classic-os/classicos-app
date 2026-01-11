@@ -63,3 +63,14 @@ rg -n "classicos\b" docs_local
 **Example:**
 - "No portfolio items yet." (honest) ✓
 - "Your portfolio will appear here soon." (speculative) ✗
+
+## Repo Naming System
+
+Agent docs respect a consistent naming and numbering system across `docs_local/` and `agents/`. Before creating or renaming documentation:
+
+- Follow [docs_local/implementation/060-naming-and-numbering.md](../../docs_local/implementation/060-naming-and-numbering.md) for file paths, numbering (000/010/020), and kebab-case rules.
+- **Never** use "phase-*" in filenames; use capability/milestone names instead (e.g., `portfolio-readonly-plan.md`, not `phase-6-plan.md`).
+- **Do not** create new top-level doc folders without justification; work within the existing taxonomy (architecture, decisions, implementation, modules, product, handoff).
+- After renames, run verification commands: `find docs_local -name "*phase-*"` (should be empty), `rg "Phase 6|Phase 7|Phase 8"` (should only appear in handoff overview, not module docs).
+- Update commit messages with scope prefixes: "Docs:", "Agents:", or module names (e.g., "Portfolio:", "Markets:").
+````
