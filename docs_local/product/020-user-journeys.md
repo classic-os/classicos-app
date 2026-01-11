@@ -15,5 +15,5 @@ No public funnel design, no speculative adapters beyond ETCswap V2, no execution
 ## Next Step
 Land journeys as capabilities unlock:
 - Read-first (Portfolio-first): User selects active chain, views Portfolio shell (balances/positions/activity) in read-only mode until `capabilities.portfolio` is enabled; observability links help validate data.
-- DeFi utility (Markets adapter path): User navigates Markets → surfaces stay gated until `capabilities.markets` flips; Phase 7 targets ETCswap V2 adapter as the single path (adapter, not net-new exchange UI).
-- Miner journey (Phase 8): ETChash miner (ASIC-primary, GPU supported) uses Produce to understand mode, then bridge miner rewards into capital deployment when miner → capital bridge surfaces land; RequirementGate keeps execution scoped to active chain.
+- DeFi utility (Markets adapter path): User navigates Markets → surfaces stay gated until `capabilities.markets` flips; Markets via ETCswap adapter targets ETCswap V2 adapter as the single path (adapter, not net-new exchange UI).
+- Miner journey (Miner → capital bridge): ETChash miner (ASIC-primary, GPU supported) uses Produce to understand mode, then bridge miner rewards into capital deployment when miner → capital bridge surfaces land; RequirementGate keeps execution scoped to active chain.

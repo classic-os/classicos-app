@@ -15,4 +15,4 @@ No execution, no rebalancing or trading actions, no write paths until capability
 - Pattern: ModuleHeader, L2 links, RequirementGate, Panel + EmptyState; observability uses explorer link when present.
 
 ## Next Step
-Keep Portfolio as read-only for Phase 6; enable capability only when read surfaces are wired to data, leaving write paths off.
+Keep Portfolio as read-only (v0); enable capability only when read surfaces are wired to data, leaving write paths off.

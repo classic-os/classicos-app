@@ -16,7 +16,7 @@ Does not include public launch narratives or speculative protocol integrations b
 - Observability: Block explorer links flow from the network registry; other observability surfaces are placeholders.
 
 ## Next Step
-Sequence the next engineering milestones against the roadmap phases:
-- Milestone A (Phase 6 lead-in): Deliver Portfolio read-only surfaces wired to registry truth, keeping write paths disabled.
-- Milestone B (Phase 7 lead-in): Stand up Markets surfaces behind `capabilities.markets` using the ETCswap V2 adapter (adapter-only, no net-new product surface).
-- Milestone C (Phase 8 lead-in): Define miner → capital bridge primitives, centering ASIC-first ETChash with GPU support retained.
+Sequence the next engineering milestones in order of capability unlock:
+- Milestone A (Portfolio read-only v0): Deliver Portfolio read-only surfaces wired to registry truth, keeping write paths disabled.
+- Milestone B (Markets via ETCswap adapter): Stand up Markets surfaces behind `capabilities.markets` using the ETCswap V2 adapter (adapter-only, no net-new product surface).
+- Milestone C (Miner → capital bridge): Define miner → capital bridge primitives, centering ASIC-first ETChash with GPU support retained.

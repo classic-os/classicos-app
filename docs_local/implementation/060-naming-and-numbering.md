@@ -138,7 +138,7 @@ Docs: normalize naming system for docs_local and modules
 ```
 
 ```
-Portfolio: add activity explorer link (Phase 6 v0)
+Portfolio: add activity explorer link (Portfolio Activity v0)
 
 - Create src/lib/activity/links.ts adapter
 - Create src/hooks/useActivityExplorerLink.ts hook
