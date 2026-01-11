@@ -49,7 +49,7 @@ export default function LiquidityPage() {
     return (
         <div className="space-y-6">
             <ModuleHeader title="Markets" subtitle={`Active: ${ecosystem.shortName}`} />
-            
+
             <Link href="/markets" className="text-xs text-white/70 underline hover:text-white">
                 ← Back to Markets
             </Link>

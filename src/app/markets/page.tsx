@@ -58,7 +58,7 @@ export default function MarketsPage() {
     return (
         <div className="space-y-6">
             <ModuleHeader title="Markets" subtitle={`Active: ${ecosystem.shortName}`} />
-            
+
             <div className="flex gap-3 text-xs">
                 <Link href="/markets/assets" className="text-white/70 underline hover:text-white">
                     Assets
