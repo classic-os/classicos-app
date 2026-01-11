@@ -31,7 +31,10 @@ export function Sidebar() {
             <SectionTitle>MODULES</SectionTitle>
             <nav className="mt-2 flex flex-col gap-1 px-2">
                 {NAV_ITEMS.map((it) => {
-                    const active = pathname === it.href;
+                    const active =
+                        it.href === "/"
+                            ? pathname === "/"
+                            : pathname === it.href || pathname.startsWith(it.href + "/");
                     const Icon = it.icon;
 
                     return (
@@ -45,12 +48,28 @@ export function Sidebar() {
                                     : "text-white/70 hover:bg-white/5 hover:text-white"
                             )}
                         >
-                            <Icon className={cn("mt-0.5 h-4 w-4", active ? "text-white" : "text-white/60 group-hover:text-white")} />
-                            <div className="min-w-0">
-                                <div className="text-sm font-semibold">{it.label}</div>
-                                <div className="mt-0.5 truncate text-xs text-white/50 group-hover:text-white/60">
-                                    {it.description}
+                            <Icon
+                                className={cn(
+                                    "mt-0.5 h-4 w-4",
+                                    active ? "text-white" : "text-white/60 group-hover:text-white"
+                                )}
+                            />
+
+                            <div className="flex min-w-0 flex-1 items-start justify-between gap-3">
+                                <div className="min-w-0">
+                                    <div className="text-sm font-semibold">{it.label}</div>
+                                    <div className="mt-0.5 truncate text-xs text-white/50 group-hover:text-white/60">
+                                        {it.description}
+                                    </div>
                                 </div>
+
+                                {/* Accent dot (OS-like) */}
+                                <span
+                                    className={cn(
+                                        "mt-1.5 h-2 w-2 rounded-full transition",
+                                        active ? "bg-[rgb(var(--accent))] shadow-[0_0_14px_rgba(0,255,136,0.25)]" : "bg-white/15 group-hover:bg-white/25"
+                                    )}
+                                />
                             </div>
                         </Link>
                     );
