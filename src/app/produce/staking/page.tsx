@@ -50,7 +50,7 @@ export default function StakingPage() {
     return (
         <div className="space-y-6">
             <ModuleHeader title="Produce" subtitle={`Active: ${ecosystem.shortName}`} />
-            
+
             <Link href="/produce" className="text-xs text-white/70 underline hover:text-white">
                 ← Back to Produce
             </Link>
