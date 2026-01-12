@@ -7,7 +7,8 @@ Use this template for code refactoring (no behavior change). Copy the XML block 
 ## Prompt Template (copy this)
 
 ```xml
-<role>code-executor</role>
+<role>{SELECT_ONE: code-executor | code-reviewer | docs-maintainer | system-designer}</role>
+<!-- Typical: code-executor (most refactors are code changes) -->
 
 <task>
   <title>[Brief refactor description, 3-7 words]</title>

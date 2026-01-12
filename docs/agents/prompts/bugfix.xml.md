@@ -7,7 +7,8 @@ Use this template for fixing bugs. Copy the XML block below and fill in placehol
 ## Prompt Template (copy this)
 
 ```xml
-<role>code-executor</role>
+<role>{SELECT_ONE: code-executor | code-reviewer | docs-maintainer | system-designer}</role>
+<!-- Typical: code-executor (most bugfixes are code changes) -->
 
 <task>
   <title>[Brief bug description, 3-7 words]</title>

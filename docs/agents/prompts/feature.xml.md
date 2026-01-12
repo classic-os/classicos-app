@@ -7,7 +7,8 @@ Use this template for adding new features. Copy the XML block below and fill in 
 ## Prompt Template (copy this)
 
 ```xml
-<role>code-executor|system-designer</role>
+<role>{SELECT_ONE: code-executor | code-reviewer | docs-maintainer | system-designer}</role>
+<!-- Typical: system-designer (for planning) or code-executor (for implementation) -->
 
 <task>
   <title>[Brief feature description, 3-7 words]</title>

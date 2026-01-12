@@ -7,7 +7,8 @@ Use this template for UI-only changes (styling, layout, copy). Copy the XML bloc
 ## Prompt Template (copy this)
 
 ```xml
-<role>code-executor</role>
+<role>{SELECT_ONE: code-executor | code-reviewer | docs-maintainer | system-designer}</role>
+<!-- Typical: code-executor (UI changes are code modifications) -->
 
 <task>
   <title>[Brief UI change description, 3-7 words]</title>

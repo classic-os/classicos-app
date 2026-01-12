@@ -7,7 +7,7 @@ Use this template for general-purpose agent tasks. Copy the XML block below and 
 ## Prompt Template (copy this)
 
 ```xml
-<role>code-executor|code-reviewer|docs-maintainer|system-designer</role>
+<role>{SELECT_ONE: code-executor | code-reviewer | docs-maintainer | system-designer}</role>
 
 <task>
   <title>[Brief task name, 3-7 words]</title>
