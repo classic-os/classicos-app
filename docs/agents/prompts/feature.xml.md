@@ -7,6 +7,8 @@ Use this template for adding new features. Copy the XML block below and fill in 
 ## Prompt Template (copy this)
 
 ```xml
+<role>code-executor|system-designer</role>
+
 <task>
   <title>[Brief feature description, 3-7 words]</title>
   <scope>[Module or area where feature lives]</scope>
@@ -84,6 +86,8 @@ Use this template for adding new features. Copy the XML block below and fill in 
 ## Example Usage
 
 ```xml
+<role>code-executor</role>
+
 <task>
   <title>Add portfolio balance breakdown by asset</title>
   <scope>Portfolio module: Balances page</scope>

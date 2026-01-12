@@ -7,6 +7,8 @@ Use this template for code refactoring (no behavior change). Copy the XML block 
 ## Prompt Template (copy this)
 
 ```xml
+<role>code-executor</role>
+
 <task>
   <title>[Brief refactor description, 3-7 words]</title>
   <scope>[File, module, or pattern being refactored]</scope>
@@ -83,6 +85,8 @@ Use this template for code refactoring (no behavior change). Copy the XML block 
 ## Example Usage
 
 ```xml
+<role>code-executor</role>
+
 <task>
   <title>Extract common chain validation logic</title>
   <scope>src/lib/chains/utils.ts and callers</scope>

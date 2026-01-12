@@ -4,6 +4,16 @@
 
 **Read `AGENTS.md` first.** This file is a quick reference that points to the complete agent guidance.
 
+## Pick Your Role
+
+**One role per task.** Choose based on what you're doing:
+- **Implementing code?** → `code-executor` ([docs/agents/roles/code-executor.md](../docs/agents/roles/code-executor.md))
+- **Reviewing changes?** → `code-reviewer` ([docs/agents/roles/code-reviewer.md](../docs/agents/roles/code-reviewer.md))
+- **Updating docs?** → `docs-maintainer` ([docs/agents/roles/docs-maintainer.md](../docs/agents/roles/docs-maintainer.md))
+- **Designing features?** → `system-designer` ([docs/agents/roles/system-designer.md](../docs/agents/roles/system-designer.md))
+
+See [docs/agents/roles/README.md](../docs/agents/roles/README.md) for role selection guide.
+
 ## Quick Commands
 
 ```bash

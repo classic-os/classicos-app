@@ -7,6 +7,8 @@ Use this template for UI-only changes (styling, layout, copy). Copy the XML bloc
 ## Prompt Template (copy this)
 
 ```xml
+<role>code-executor</role>
+
 <task>
   <title>[Brief UI change description, 3-7 words]</title>
   <scope>[Component or page being modified]</scope>
@@ -83,6 +85,8 @@ Use this template for UI-only changes (styling, layout, copy). Copy the XML bloc
 ## Example Usage
 
 ```xml
+<role>code-executor</role>
+
 <task>
   <title>Update empty state copy in Markets module</title>
   <scope>src/app/markets/page.tsx</scope>
@@ -167,6 +171,8 @@ Use this template for UI-only changes (styling, layout, copy). Copy the XML bloc
 ### Styling Example
 
 ```xml
+<role>code-executor</role>
+
 <task>
   <title>Increase Portfolio panel spacing for readability</title>
   <scope>src/components/portfolio/BalancePanel.tsx</scope>

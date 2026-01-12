@@ -2,6 +2,18 @@
 
 This document provides essential context, commands, and boundaries for AI coding agents (GitHub Copilot, etc.) working on the Classic OS application.
 
+## Pick Your Role
+
+**One role per task.** Choose based on what you're doing:
+- **Implementing code?** → `code-executor`
+- **Reviewing changes?** → `code-reviewer`
+- **Updating docs?** → `docs-maintainer`
+- **Designing features?** → `system-designer`
+
+See [docs/agents/roles/](docs/agents/roles/) for detailed role descriptions, allowed/forbidden actions, and stop conditions.
+
+**Don't mix roles.** Complete one role's work, commit, then switch roles for the next task.
+
 ## Quick Start
 
 ```bash

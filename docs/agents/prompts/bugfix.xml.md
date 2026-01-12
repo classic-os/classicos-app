@@ -7,6 +7,8 @@ Use this template for fixing bugs. Copy the XML block below and fill in placehol
 ## Prompt Template (copy this)
 
 ```xml
+<role>code-executor</role>
+
 <task>
   <title>[Brief bug description, 3-7 words]</title>
   <scope>[File or module where bug occurs]</scope>
@@ -82,6 +84,8 @@ Use this template for fixing bugs. Copy the XML block below and fill in placehol
 ## Example Usage
 
 ```xml
+<role>code-executor</role>
+
 <task>
   <title>Fix BigInt literal error in transaction parser</title>
   <scope>src/lib/transactions/parser.ts</scope>

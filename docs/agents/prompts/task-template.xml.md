@@ -7,6 +7,8 @@ Use this template for general-purpose agent tasks. Copy the XML block below and 
 ## Prompt Template (copy this)
 
 ```xml
+<role>code-executor|code-reviewer|docs-maintainer|system-designer</role>
+
 <task>
   <title>[Brief task name, 3-7 words]</title>
   <scope>[Specific module, file, or area affected]</scope>
@@ -74,6 +76,8 @@ Use this template for general-purpose agent tasks. Copy the XML block below and 
 ## Example Usage
 
 ```xml
+<role>code-executor</role>
+
 <task>
   <title>Add block explorer link to Portfolio Activity</title>
   <scope>Portfolio module: Activity panel</scope>
