@@ -10,6 +10,12 @@ Use this template for code refactoring (no behavior change). Copy the XML block 
 <role>{SELECT_ONE: code-executor | code-reviewer | docs-maintainer | system-designer}</role>
 <!-- Typical: code-executor (most refactors are code changes) -->
 
+<task_header>
+  <id>{slug}</id>
+  <branch>main</branch>
+  <changed_areas>{SELECT_ONE: code | docs | config}</changed_areas>
+</task_header>
+
 <task>
   <title>[Brief refactor description, 3-7 words]</title>
   <scope>[File, module, or pattern being refactored]</scope>

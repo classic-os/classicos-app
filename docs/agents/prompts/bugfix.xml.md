@@ -10,6 +10,12 @@ Use this template for fixing bugs. Copy the XML block below and fill in placehol
 <role>{SELECT_ONE: code-executor | code-reviewer | docs-maintainer | system-designer}</role>
 <!-- Typical: code-executor (most bugfixes are code changes) -->
 
+<task_header>
+  <id>{slug}</id>
+  <branch>main</branch>
+  <changed_areas>{SELECT_ONE: code | docs | config}</changed_areas>
+</task_header>
+
 <task>
   <title>[Brief bug description, 3-7 words]</title>
   <scope>[File or module where bug occurs]</scope>

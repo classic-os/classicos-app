@@ -10,6 +10,12 @@ Use this template for adding new features. Copy the XML block below and fill in 
 <role>{SELECT_ONE: code-executor | code-reviewer | docs-maintainer | system-designer}</role>
 <!-- Typical: system-designer (for planning) or code-executor (for implementation) -->
 
+<task_header>
+  <id>{slug}</id>
+  <branch>main</branch>
+  <changed_areas>{SELECT_ONE: code | docs | config}</changed_areas>
+</task_header>
+
 <task>
   <title>[Brief feature description, 3-7 words]</title>
   <scope>[Module or area where feature lives]</scope>

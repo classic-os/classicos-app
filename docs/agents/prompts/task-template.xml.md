@@ -9,6 +9,12 @@ Use this template for general-purpose agent tasks. Copy the XML block below and 
 ```xml
 <role>{SELECT_ONE: code-executor | code-reviewer | docs-maintainer | system-designer}</role>
 
+<task_header>
+  <id>{slug}</id>
+  <branch>main</branch>
+  <changed_areas>{SELECT_ONE: code | docs | config}</changed_areas>
+</task_header>
+
 <task>
   <title>[Brief task name, 3-7 words]</title>
   <scope>[Specific module, file, or area affected]</scope>
@@ -77,6 +83,12 @@ Use this template for general-purpose agent tasks. Copy the XML block below and 
 
 ```xml
 <role>code-executor</role>
+
+<task_header>
+  <id>portfolio-activity-explorer-link</id>
+  <branch>main</branch>
+  <changed_areas>code</changed_areas>
+</task_header>
 
 <task>
   <title>Add block explorer link to Portfolio Activity</title>

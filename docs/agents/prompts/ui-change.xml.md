@@ -10,6 +10,12 @@ Use this template for UI-only changes (styling, layout, copy). Copy the XML bloc
 <role>{SELECT_ONE: code-executor | code-reviewer | docs-maintainer | system-designer}</role>
 <!-- Typical: code-executor (UI changes are code modifications) -->
 
+<task_header>
+  <id>{slug}</id>
+  <branch>main</branch>
+  <changed_areas>{SELECT_ONE: code | docs | config}</changed_areas>
+</task_header>
+
 <task>
   <title>[Brief UI change description, 3-7 words]</title>
   <scope>[Component or page being modified]</scope>
