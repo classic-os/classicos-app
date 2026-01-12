@@ -29,10 +29,13 @@ classicos-app/
 │   ├── app/              # Next.js 16 App Router pages (/, /produce, /portfolio, /deploy, /markets)
 │   ├── components/       # React components (layout, primitives, ui, module-specific)
 │   └── lib/              # Core logic (ecosystems, networks, state, chain utilities)
-├── agents/               # Agent-specific guidance (follow all rules strictly)
-├── docs_local/           # Internal documentation (architecture, decisions, planning)
+├── docs/
+│   ├── agents/           # Agent rules (mandatory) and prompt templates
+│   ├── dev/              # Developer guides (patterns, conventions)
+│   ├── architecture/     # System architecture docs
+│   └── ...               # (product, decisions, modules, handoff)
 ├── public/               # Static assets
-└── AGENTS.md            # This file
+└── AGENTS.md             # This file (you are here)
 ```
 
 ### Technology Stack
@@ -68,17 +71,19 @@ npm run lint && npm run typecheck && npm run build
 
 ## Critical Agent Rules
 
-### ALWAYS Follow agents/* Guidance
+### ALWAYS Follow docs/agents/rules/* Guidance
 
-The `agents/` directory contains **mandatory** rules for working in this repo. Read all files:
+The `/docs/agents/rules/` directory contains **mandatory** behavioral rules. Read all files:
 
-1. `agents/000-global-rules.md` — Change control, scope boundaries, prohibited actions
-2. `agents/010-naming-and-prose.md` — Naming conventions ("Classic OS" in prose, never "ClassicOS")
-3. `agents/020-tooling-and-typescript.md` — TypeScript target (ES2017), BigInt handling, lint discipline
-4. `agents/030-web3-client-rules.md` — wagmi v3 + viem v2 patterns, read-only by default
-5. `agents/040-readonly-data-patterns.md` — Adapter → Hook → UI layering, honest empty states
-6. `agents/050-quality-and-checks.md` — Pre-completion checklist (lint, build, git diff)
-7. `agents/090-agentic-workflow.md` — Two-phase workflow (planning, then implementation)
+1. `docs/agents/rules/000-global-rules.md` — Change control, scope boundaries, prohibited actions
+2. `docs/agents/rules/010-naming-and-prose.md` — Naming conventions ("Classic OS" in prose, never "ClassicOS")
+3. `docs/agents/rules/020-tooling-and-typescript.md` — TypeScript target (ES2017), BigInt handling, lint discipline
+4. `docs/agents/rules/030-web3-client-rules.md` — wagmi v3 + viem v2 patterns, read-only by default
+5. `docs/agents/rules/040-readonly-data-patterns.md` — Adapter → Hook → UI layering, honest empty states
+6. `docs/agents/rules/050-quality-and-checks.md` — Pre-completion checklist (lint, build, git diff)
+7. `docs/agents/rules/090-agentic-workflow.md` — Two-phase workflow (planning, then implementation)
+
+**See also:** `/docs/agents/README.md` for agent doc index and `/docs/agents/prompts/` for task templates.
 
 **Key constraint:** All changes must pass lint and build. No exceptions.
 
@@ -117,7 +122,7 @@ The `agents/` directory contains **mandatory** rules for working in this repo. R
 - **Prose:** "Classic OS" (with space) in all documentation, UI copy, comments
 - **Code:** `classicos` (lowercase, no space) in file paths, variables, package names
 - **Files:** kebab-case, no "phase-*" names (use capability/milestone names)
-- **See:** `agents/010-naming-and-prose.md` and `docs_local/implementation/060-naming-and-numbering.md`
+- **See:** `docs/agents/rules/010-naming-and-prose.md` and `docs/dev/060-naming-and-numbering.md`
 
 ## Validation Checklist (Before Completion)
 
@@ -152,7 +157,7 @@ git diff
 ✓ Diff is reviewable (not hundreds of lines)
 
 ### 5. Agent Rules Compliance
-- [ ] Followed all `agents/*.md` rules
+- [ ] Followed all `docs/agents/rules/*.md` rules
 - [ ] Change is scoped to a single module/feature
 - [ ] No prohibited areas touched
 - [ ] Naming conventions respected ("Classic OS" in prose)
@@ -173,7 +178,7 @@ git diff
 2. No React dependencies
 3. Structural types for viem clients (not `PublicClient` imports)
 4. Returns data or throws
-5. See `agents/040-readonly-data-patterns.md` for 3-layer pattern
+5. See `docs/agents/rules/040-readonly-data-patterns.md` for 3-layer pattern
 
 ### Creating a Hook
 
@@ -279,7 +284,7 @@ Docs: normalize milestone naming in handoff docs
 
 A successful agent contribution:
 - ✓ Passes all validation commands (lint, typecheck, build)
-- ✓ Follows all agents/*.md rules
+- ✓ Follows all `docs/agents/rules/*.md` rules
 - ✓ Keeps diff small and focused
 - ✓ Includes clear commit message
 - ✓ No accidental changes to prohibited areas
@@ -302,6 +307,6 @@ A successful agent contribution:
 
 **Last Updated:** 2026-01-11
 
-For detailed implementation guidance, see `agents/` directory.
-For architectural context, see `docs_local/architecture/`.
-For roadmap and decisions, see `docs_local/handoff/` and `docs_local/decisions/`.
+For detailed implementation guidance, see `/docs/agents/` (rules and prompt templates).
+For architectural context, see `/docs/architecture/`.
+For roadmap and decisions, see `/docs/handoff/` and `/docs/decisions/`.

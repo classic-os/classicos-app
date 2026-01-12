@@ -23,13 +23,16 @@ All three must pass. No exceptions.
 ## Mandatory Reading
 
 All agent activity MUST comply with rules in:
-- `agents/000-global-rules.md` — Change control, scope boundaries
-- `agents/010-naming-and-prose.md` — Naming ("Classic OS" in prose)
-- `agents/020-tooling-and-typescript.md` — TypeScript target ES2017, no BigInt literals
-- `agents/030-web3-client-rules.md` — wagmi v3 + viem v2 patterns
-- `agents/040-readonly-data-patterns.md` — Adapter → Hook → UI layering
-- `agents/050-quality-and-checks.md` — Pre-completion checklist
-- `agents/090-agentic-workflow.md` — Two-phase workflow
+- `docs/agents/rules/000-global-rules.md` — Change control, scope boundaries
+- `docs/agents/rules/010-naming-and-prose.md` — Naming ("Classic OS" in prose)
+- `docs/agents/rules/020-tooling-and-typescript.md` — TypeScript target ES2017, no BigInt literals
+- `docs/agents/rules/030-web3-client-rules.md` — wagmi v3 + viem v2 patterns
+- `docs/agents/rules/040-readonly-data-patterns.md` — Adapter → Hook → UI layering
+- `docs/agents/rules/050-quality-and-checks.md` — Pre-completion checklist
+- `docs/agents/rules/090-agentic-workflow.md` — Two-phase workflow
+
+**Quick reference:** See `/docs/agents/README.md` for agent doc index.
+**Prompt templates:** Use `/docs/agents/prompts/*.xml.md` for structured tasks.
 
 ## Key Constraints
 
@@ -70,7 +73,7 @@ Do NOT modify these areas unless the task explicitly targets them:
 3. Create UI component (handles all states: disconnected, loading, error, empty, data)
 4. Update parent component to wire it in
 
-See `agents/040-readonly-data-patterns.md` for the 3-layer pattern.
+See `docs/agents/rules/040-readonly-data-patterns.md` for the 3-layer pattern.
 
 ### Honest Empty States
 - ✓ "No data available" (truthful)
@@ -103,7 +106,7 @@ Before marking work complete:
 - [ ] `npm run build` succeeds
 - [ ] `git diff` shows only intended changes
 - [ ] No `console.log` statements left behind
-- [ ] All `agents/*.md` rules followed
+- [ ] All `docs/agents/rules/*.md` rules followed
 - [ ] Naming conventions respected ("Classic OS" in prose)
 - [ ] Read-only pattern enforced (no transaction signing unless requested)
 
@@ -145,15 +148,17 @@ Error: BigInt literals are not available when targeting lower than ES2020
 **Wrong:** `usePrepareWriteContract`, `usePrepareContractWrite`
 **Correct:** `useWriteContract`, `useSimulateContract`
 
-See `agents/030-web3-client-rules.md` for full migration guide.
+See `docs/agents/rules/030-web3-client-rules.md` for full migration guide.
 
 ## Additional Resources
 
 - **Full agent guidance:** `AGENTS.md` at repo root
-- **Architecture docs:** `docs_local/architecture/`
-- **Module plans:** `docs_local/modules/<module>/`
-- **Decisions:** `docs_local/decisions/`
-- **Implementation guides:** `docs_local/implementation/`
+- **Agent rules:** `docs/agents/rules/` (mandatory)
+- **Prompt templates:** `docs/agents/prompts/` (task, bugfix, refactor, feature, ui-change)
+- **Architecture docs:** `docs/architecture/`
+- **Module plans:** `docs/modules/<module>/`
+- **Decisions:** `docs/decisions/`
+- **Dev guides:** `docs/dev/`
 
 ---
 
