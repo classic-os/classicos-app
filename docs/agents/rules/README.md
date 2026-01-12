@@ -19,7 +19,7 @@ Follow agents/<filename> strictly.
 
 For example:
 ```
-Follow agents/000-global-rules.md, agents/010-naming-and-prose.md, and agents/020-tooling-and-typescript.md strictly.
+Follow docs/agents/rules/000-global-rules.md, docs/agents/rules/010-naming-and-prose.md, and docs/agents/rules/020-tooling-and-typescript.md strictly.
 ```
 
 ## Agent Files Index

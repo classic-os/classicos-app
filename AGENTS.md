@@ -115,7 +115,7 @@ The `/docs/agents/rules/` directory contains **mandatory** behavioral rules. Rea
 
 - **Target: ES2017** — No BigInt literals (`0n`). Use `BigInt()` constructor.
 - **Strict mode enabled** — All type errors must be fixed (no `any` unless unavoidable)
-- **No concrete viem types in adapters** — Use structural interfaces (see `agents/030-web3-client-rules.md`)
+- **No concrete viem types in adapters** — Use structural interfaces (see `docs/agents/rules/030-web3-client-rules.md`)
 
 ### Naming Conventions
 
@@ -234,8 +234,8 @@ Read error carefully. Most common causes:
 
 ## Getting Help
 
-1. **Read agents/*.md** — Most questions answered there
-2. **Check docs_local/** — Architecture, decisions, module plans
+1. **Read docs/agents/rules/*.md** — Most questions answered there
+2. **Check docs/** — Architecture, decisions, module plans, dev guides
 3. **Search codebase** — Look for existing patterns before inventing new ones
 4. **Ask specific questions** — Include file paths, error messages, what you've tried
 
@@ -249,8 +249,8 @@ Read error carefully. Most common causes:
 ```
 
 ### Scope Prefixes
-- `Docs:` — docs_local/ or agents/ changes
-- `Agents:` — agents/ rule updates
+- `Docs:` — docs/ changes (any documentation)
+- `Agents:` — docs/agents/ rule or prompt updates
 - `Portfolio:` / `Markets:` / `Produce:` / `Deploy:` / `Home:` — module code changes
 - `Build:` / `Tooling:` — package.json, tsconfig, eslint, etc.
 - `Refactor:` — code reorganization (no behavior change)
@@ -275,7 +275,7 @@ Docs: normalize milestone naming in handoff docs
 
 - **Prose naming:** "Classic OS" (with space)
 - **File naming:** kebab-case, descriptive (no "phase-*")
-- **Folder structure:** See `docs_local/implementation/060-naming-and-numbering.md`
+- **Folder structure:** See `docs/dev/060-naming-and-numbering.md`
 - **No external dependencies without justification**
 - **RPC-only** — No off-chain indexers or APIs by default
 - **Capability-gated** — Respect `ecosystem.capabilities.*` flags

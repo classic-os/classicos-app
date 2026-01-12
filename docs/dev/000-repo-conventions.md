@@ -11,7 +11,7 @@ No stylebike debates, no tooling changes beyond what the repo already uses, no n
 
 ## Current Status (as implemented)
 - Naming: "Classic OS" in prose; `ClassicOS`/`classicos` only for code/paths.
-- Edit scope: Application code lives under `src/`; internal docs under `docs_local/`; agent guidance under `agents/`.
+- Edit scope: Application code lives under `src/`; internal docs under `docs/`; agent guidance under `docs/agents/`.
 - Capability source: Module availability defined in [src/lib/ecosystems/registry.ts](src/lib/ecosystems/registry.ts); do not diverge docs from registry truth.
 - Workspace source: Active chain/testnet toggles in [src/lib/state/workspace.ts](src/lib/state/workspace.ts); pages subscribe via `useSyncExternalStore`.
 

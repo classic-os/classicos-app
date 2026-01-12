@@ -1,13 +1,31 @@
-# Classic OS Internal Docs (docs_local)
+# Classic OS Internal Documentation
 
-docs_local is the internal, implementation-oriented documentation set for Classic OS contributors.
+This directory contains internal, implementation-oriented documentation for Classic OS contributors.
 
-- Purpose: preserve implementation truth, prevent drift, and give maintainers guardrails.
-- Public docs live at https://classicos.org/docs (not in this repo).
+- **Purpose:** Preserve implementation truth, prevent drift, and give maintainers guardrails.
+- **Public docs:** https://classicos.org/docs (not in this repo).
 
-Key internal entries (start here):
-- Handoff: [docs_local/handoff/000-project-status.md](docs_local/handoff/000-project-status.md)
-- Handoff: [docs_local/handoff/020-roadmap-sequence.md](docs_local/handoff/020-roadmap-sequence.md)
-- Product: [docs_local/product/000-product-model.md](docs_local/product/000-product-model.md)
-- Architecture: [docs_local/architecture/020-capability-gating.md](docs_local/architecture/020-capability-gating.md)
-- Decisions: [docs_local/decisions/000-decision-log.md](docs_local/decisions/000-decision-log.md)
+## Structure
+
+- **agents/** — Agent rules (mandatory) and prompt templates for AI coding agents
+- **dev/** — Developer guides (patterns, conventions, workflows)
+- **architecture/** — System architecture (app shell, routing, gating, state, UI primitives)
+- **decisions/** — Architectural Decision Records (ADRs)
+- **product/** — Product model, module definitions, user journeys, scope boundaries
+- **modules/** — Module-specific planning (portfolio, markets, produce, deploy, home)
+- **handoff/** — Project status, milestones, roadmap, definition of done
+
+## Quick Links
+
+### For Agents
+- **Start here:** [/AGENTS.md](/AGENTS.md) (setup, validation, guardrails)
+- **Agent rules:** [agents/rules/](agents/rules/) (mandatory behavioral constraints)
+- **Prompt templates:** [agents/prompts/](agents/prompts/) (task, bugfix, refactor, feature, ui-change)
+
+### For Developers
+- **Handoff:** [handoff/000-project-status.md](handoff/000-project-status.md) (current status)
+- **Roadmap:** [handoff/020-roadmap-sequence.md](handoff/020-roadmap-sequence.md) (milestone sequence)
+- **Product model:** [product/000-product-model.md](product/000-product-model.md) (what we're building)
+- **Capability gating:** [architecture/020-capability-gating.md](architecture/020-capability-gating.md) (feature flags)
+- **Decisions:** [decisions/000-decision-log.md](decisions/000-decision-log.md) (ADR index)
+

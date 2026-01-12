@@ -15,8 +15,8 @@ No reorganization proposals; no exhaustive file-by-file listing.
 - Module routes: `src/app/{produce,portfolio,deploy,markets}` with L2 subfolders for each module; Home at `src/app/page.tsx`.
 - Shared UI: `src/components/ui` (ModuleHeader, Panel, EmptyState, RequirementGate, CapabilityBadge, StatusPill).
 - State/registry: `src/lib/state/workspace.ts`, `src/lib/ecosystems/registry.ts`.
-- Internal docs: `docs_local/` with handoff, product, architecture, implementation, decisions.
+- Internal docs: `docs/` with handoff, product, architecture, dev guides, decisions, modules.
 - Agent guidance: `agents/`.
 
 ## Next Step
-Add new assets only within the appropriate folder; keep docs inside `docs_local/` and reference existing paths instead of duplicating structure.
+Add new assets only within the appropriate folder; keep docs inside `docs/` and reference existing paths instead of duplicating structure.

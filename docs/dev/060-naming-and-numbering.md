@@ -1,32 +1,34 @@
 # Naming and Numbering Conventions
 
 ## Purpose
-Establish a single, stable convention for naming docs_local files, folders, decisions, and commit messages so the repo remains organized and discoverable as work evolves.
+Establish a single, stable convention for naming documentation files, folders, decisions, and commit messages so the repo remains organized and discoverable as work evolves.
 
 ## Scope
-- File paths and filenames under `docs_local/` and `agents/`
+- File paths and filenames under `docs/`
 - Folder structure and taxonomy
 - Decision document naming
 - Commit message prefixes
-- Does NOT cover code identifiers (see agents/010-naming-and-prose.md for prose/code naming rules)
+- Does NOT cover code identifiers (see docs/agents/rules/010-naming-and-prose.md for prose/code naming rules)
 
-## Folder Taxonomy (docs_local/*)
+## Folder Taxonomy (docs/*)
 
 ```
-docs_local/
+docs/
 ├── README.md
-├── architecture/        # System design, AppShell, routing, state patterns
-├── decisions/          # Decision log (decision records)
-├── handoff/           # Roadmap overview, milestones, user journeys (high-level)
-├── implementation/    # Internal conventions, dev guidance, testing patterns
-├── modules/           # Per-module documentation (Home, Portfolio, Produce, Deploy, Markets)
+├── agents/              # Agent rules and prompt templates
+│   ├── rules/          # Mandatory behavioral constraints
+│   └── prompts/        # XML-tagged task templates
+├── dev/                # Developer guides (patterns, conventions, workflows)
+├── architecture/       # System design, AppShell, routing, state patterns
+├── decisions/          # Architectural Decision Records (ADRs)
+├── handoff/            # Roadmap overview, milestones, user journeys (high-level)
+├── modules/            # Per-module documentation (Home, Portfolio, Produce, Deploy, Markets)
 │   ├── portfolio/
 │   ├── markets/
 │   ├── produce/
 │   ├── deploy/
 │   └── home/
-├── product/          # Product-level context (no redesign; linked to roadmap)
-└── README.md
+└── product/            # Product-level context (no redesign; linked to roadmap)
 ```
 
 ## File Numbering Rules
@@ -36,7 +38,7 @@ docs_local/
 
 ### Meaning of 000
 - **000-** prefix: Foundational intent, scope, or overview for that folder.
-- Example: `docs_local/modules/portfolio/000-intent.md` explains what Portfolio is for.
+- Example: `docs/modules/portfolio/000-intent.md` explains what Portfolio is for.
 - **One per folder.** If a folder has 000, do not duplicate at another level.
 
 ### When to Add 010, 020, 030
@@ -149,7 +151,7 @@ Portfolio: add activity explorer link (Portfolio Activity v0)
 ```
 Agents: add agentic workflow guidance and defaults
 
-- Create agents/090-agentic-workflow.md
+- Create docs/agents/rules/090-agentic-workflow.md
 - Document Phase A/B planning and implementation
 ```
 
