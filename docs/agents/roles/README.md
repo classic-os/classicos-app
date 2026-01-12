@@ -76,6 +76,48 @@ Task 3: code-reviewer → Review implementation → Output: findings + recommend
 Task 4: docs-maintainer → Document new feature → Output: updated docs
 ```
 
+## One Task = One Role (Strict Discipline)
+
+**Enforced rule:** Every task uses exactly ONE role. No exceptions.
+
+### What This Means
+
+- **If you need code review:** Run a separate task with `<role>code-reviewer</role>`
+- **If you need design/planning:** Run a separate task with `<role>system-designer</role>`
+- **If you need docs updated:** Run a separate task with `<role>docs-maintainer</role>`
+
+### Why This Matters
+
+Mixing roles in a single task creates:
+- Unclear authority boundaries (can this agent modify code or not?)
+- Validation confusion (which checks apply?)
+- Commit scope bloat (code + docs + design in one commit)
+- Harder rollback (can't undo docs without undoing code)
+
+### Role Switching Requires New Task
+
+**Correct workflow:**
+```
+1. Task A: <role>code-executor</role> → implement feature → commit
+2. Task B: <role>code-reviewer</role> → review Task A changes → output findings
+3. Task C: <role>code-executor</role> → address findings → commit
+```
+
+**Incorrect workflow (don't do this):**
+```
+1. Task A: <role>code-executor</role> → implement + self-review + update docs
+   ❌ Violates one-role-per-task
+   ❌ code-executor cannot modify docs
+   ❌ Self-review defeats purpose of code-reviewer role
+```
+
+### Enforcement
+
+If an agent attempts to:
+- Perform actions outside its role → **STOP and ask for role clarification**
+- Mix multiple roles in one task → **STOP and request task split**
+- Switch roles mid-task → **STOP and request new task**
+
 ## Required Reading (All Roles)
 
 Before starting any task, all roles must read:

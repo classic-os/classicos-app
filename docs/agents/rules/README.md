@@ -40,6 +40,21 @@ Follow docs/agents/rules/000-global-rules.md, docs/agents/rules/010-naming-and-p
 - **Stop when uncertain.** If scope, versions, or dependencies are unknown, do a read-only inventory first.
 - **No speculation.** Always verify file paths, API versions, and config before implementing.
 
+## Rules Immutability Guardrail
+
+**Rules in this folder (`/docs/agents/rules/**`) must NOT be edited by default.**
+
+Changes to rules require:
+- An explicit task whose goal is to modify agent rules
+- `<role>docs-maintainer</role>` (only docs-maintainer can change rules)
+- Clear rationale for why the rule change is necessary
+- Summary of behavior impact (what will change for agents after this edit)
+
+**No other role should modify rules.** If a rule seems wrong or outdated:
+1. Stop the current task
+2. Document the conflict/issue
+3. Request a separate task to update the rule (assigned to docs-maintainer)
+
 ## Workflow
 
 1. Understand the request (read agents files).
