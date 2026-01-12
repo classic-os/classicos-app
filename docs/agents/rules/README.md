@@ -55,6 +55,11 @@ Changes to rules require:
 2. Document the conflict/issue
 3. Request a separate task to update the rule (assigned to docs-maintainer)
 
+**No inline rule overrides permitted:**
+- Tasks MUST NOT override rules inline (no "temporary exceptions" inside prompts)
+- If a rule blocks progress or conflicts arise, STOP and request a dedicated rules-change task using `<role>docs-maintainer</role>`
+- Rules exist to prevent drift; inline overrides defeat the purpose
+
 ## Workflow
 
 1. Understand the request (read agents files).
