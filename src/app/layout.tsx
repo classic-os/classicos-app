@@ -5,10 +5,10 @@ import { AppShell } from "@/components/layout/AppShell";
 
 export const metadata: Metadata = {
   title: {
-    default: "Classic OS App",
+    default: "Economic Operating System | Classic OS",
     template: "%s | Classic OS",
   },
-  description: "The operating system for Ethereum Classic.",
+  description: "Transform mining into capital, automate DeFi strategies, and maintain productive on-chain positions.",
   applicationName: "Classic OS",
   metadataBase: new URL("https://app.classicos.org"),
 
@@ -19,22 +19,22 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "Classic OS",
-    title: "Classic OS App",
-    description: "The operating system for Ethereum Classic.",
+    title: "Economic Operating System | Classic OS",
+    description: "Transform mining into capital, automate DeFi strategies, and maintain productive on-chain positions.",
     images: [
       {
         url: "/opengraph-image.svg",
         width: 1200,
         height: 630,
-        alt: "Classic OS — Ethereum Classic Operating System",
+        alt: "Economic Operating System | Classic OS",
       },
     ],
   },
 
   twitter: {
     card: "summary_large_image",
-    title: "Classic OS App",
-    description: "The operating system for Ethereum Classic.",
+    title: "Economic Operating System | Classic OS",
+    description: "Transform mining into capital, automate DeFi strategies, and maintain productive on-chain positions.",
     images: ["/opengraph-image.svg"],
   },
 };

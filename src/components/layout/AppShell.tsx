@@ -30,7 +30,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
                             <footer className="border-t border-white/10 bg-black/18 px-4 py-3 text-xs text-white/55 md:px-6">
                                 <div className="flex items-center justify-between gap-3">
-                                    <div>System Status:</div>
+                                    <div>Economic Operating System</div>
                                     <FooterStatus />
                                 </div>
                             </footer>

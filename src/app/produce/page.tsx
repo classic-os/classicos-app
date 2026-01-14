@@ -58,7 +58,7 @@ export default function ProducePage() {
             {mode === "none" ? (
                 <EmptyState
                     title="No production mode available"
-                    body="The active network does not support mining or staking through ClassicOS."
+                    body="The active network does not support mining or staking through Classic OS."
                 />
             ) : (
                 <>

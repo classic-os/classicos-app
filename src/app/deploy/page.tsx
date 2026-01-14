@@ -47,8 +47,8 @@ export default function DeployPage() {
             <div className="space-y-6">
                 <ModuleHeader title="Deploy" subtitle={`Active: ${ecosystem.shortName}`} />
                 <EmptyState
-                    title="Deploy not supported on this network"
-                    body="No deployment surfaces are registered for the active network."
+                    title="DeFi Automation coming in Phase 3"
+                    body="Strategy builder, position health monitoring, and automated execution will be available after Portfolio observation layer is complete."
                 />
                 <ExternalObservability ecosystem={ecosystem} />
             </div>

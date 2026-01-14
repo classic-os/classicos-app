@@ -13,10 +13,10 @@ import { getActiveChainId, subscribeWorkspace } from "@/lib/state/workspace";
 import { getEcosystem } from "@/lib/ecosystems/registry";
 
 const tiles = [
-  { href: "/produce", title: "Produce", body: "Production mode by network (mine or stake)." },
-  { href: "/deploy", title: "Deploy", body: "Route capital into available strategies." },
-  { href: "/markets", title: "Markets", body: "Asset creation and market formation surfaces." },
-  { href: "/portfolio", title: "Portfolio", body: "Balances, positions, and activity views." },
+  { href: "/produce", title: "Produce", body: "Mining OS that transforms mining payouts into productive capital flows." },
+  { href: "/deploy", title: "Deploy", body: "DeFi automation with strategy builder and automated position management." },
+  { href: "/markets", title: "Markets", body: "DEX aggregation, stablecoin integration, and liquidity access." },
+  { href: "/portfolio", title: "Portfolio", body: "Unified observation layer for DeFi positions across protocols." },
 ];
 
 function consensusLabel(produce: "mine" | "stake" | "none") {
@@ -47,8 +47,9 @@ export default function Home() {
     >
       <div>
         <h1 className="text-3xl font-semibold tracking-tight">Classic OS</h1>
+        <h2>Economic operating system for Ethereum Classic.</h2>
         <p className="mt-2 max-w-2xl text-sm text-white/70">
-          Workspace console for network selection, capability surfaces, and execution gating.
+          Transform mining into capital, automate DeFi strategies, and maintain productive on-chain positions.
         </p>
       </div>
 

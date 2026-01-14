@@ -42,8 +42,8 @@ export default function PortfolioPage() {
             <div className="space-y-6">
                 <ModuleHeader title="Portfolio" subtitle={`Active: ${ecosystem.shortName}`} />
                 <EmptyState
-                    title="Portfolio not supported on this network"
-                    body="No portfolio or position surfaces are registered for the active network."
+                    title="Portfolio read-only surfaces in development (Phase 1)"
+                    body="Unified DeFi observation across protocols is being built. Portfolio serves as the foundation for Deploy strategy execution."
                 />
                 <ExternalObservability ecosystem={ecosystem} />
             </div>

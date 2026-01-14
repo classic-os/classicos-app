@@ -47,8 +47,8 @@ export default function MarketsPage() {
             <div className="space-y-6">
                 <ModuleHeader title="Markets" subtitle={`Active: ${ecosystem.shortName}`} />
                 <EmptyState
-                    title="Markets not supported on this network"
-                    body="No market formation or exchange surfaces are registered for the active network."
+                    title="Markets module planned for Phase 2-3"
+                    body="DEX aggregation, Brale stablecoin integration, and liquidity access surfaces will be built alongside DeFi Automation features."
                 />
                 <ExternalObservability ecosystem={ecosystem} />
             </div>

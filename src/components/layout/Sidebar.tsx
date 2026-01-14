@@ -23,7 +23,7 @@ export function Sidebar() {
                 <div className="h-2.5 w-2.5 rounded-full bg-[rgb(var(--accent))] shadow-[0_0_18px_rgba(0,255,136,0.35)]" />
                 <div className="flex flex-col leading-tight">
                     <div className="text-sm font-semibold text-white/90">Classic OS</div>
-                    <div className="text-xs text-white/45">App v0.1</div>
+                    <div className="text-xs text-white/45">Economic Operating System</div>
                 </div>
             </div>
 
@@ -80,7 +80,7 @@ export function Sidebar() {
             <SectionTitle>RESOURCES</SectionTitle>
             <div className="mt-2 px-2">
                 <a
-                    href="https://classicos.org/docs"
+                    href="https://docs.classicos.org"
                     className="flex items-center justify-between rounded-xl px-3 py-3 text-sm text-white/70 transition hover:bg-white/5 hover:text-white"
                 >
                     <span>Docs</span>
@@ -94,8 +94,8 @@ export function Sidebar() {
             {/* Footer strip */}
             <div className="border-t border-white/10 px-4 py-3 text-xs text-white/45">
                 <div className="flex items-center justify-between">
-                    <span>Classic OS v.01</span>
-                    <span className="text-white/35">Economic Operating System</span>
+                    <span>Classic OS</span>
+                    <span className="text-white/35"><sup>v0.1</sup></span>
                 </div>
             </div>
         </div>

@@ -5,10 +5,10 @@ import { EmptyState } from "@/components/ui/EmptyState";
 
 export function MiningPanel() {
     return (
-        <Panel title="Mining" description="Protocol-native capital creation (PoW)">
+        <Panel title="Mining" description="Mining OS for capital production">
             <EmptyState
-                title="Mining not configured"
-                body="Mining configuration and hashrate routing will appear here when supported."
+                title="Mining OS surfaces coming in Phase 2"
+                body="Payout detection, earnings tracking, and mining-to-strategy pathways will appear here when Mining OS features are implemented."
             />
         </Panel>
     );
