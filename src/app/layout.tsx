@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     description: "Transform mining into capital, automate DeFi strategies, and maintain productive on-chain positions.",
     images: [
       {
-        url: "/opengraph-image.svg",
+        url: "/opengraph-image.png",
         width: 1200,
         height: 630,
         alt: "Economic Operating System | Classic OS",
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Economic Operating System | Classic OS",
     description: "Transform mining into capital, automate DeFi strategies, and maintain productive on-chain positions.",
-    images: ["/opengraph-image.svg"],
+    images: ["/opengraph-image.png"],
   },
 };
 
