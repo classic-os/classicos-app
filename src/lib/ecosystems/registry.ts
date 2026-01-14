@@ -120,7 +120,7 @@ function capabilitiesFor(chainId: number, family: NetworkFamilyKey, kind: Networ
         // v0.1: default false until adapters/surfaces exist
         deploy: false,
         markets: false,
-        portfolio: false,
+        portfolio: true, // TEMPORARY: Enabled for Session 1 testing
         monitoring: false,
 
         flags: {

@@ -40,7 +40,10 @@ export default function PortfolioPage() {
     if (!ecosystem.capabilities.portfolio) {
         return (
             <div className="space-y-6">
-                <ModuleHeader title="Portfolio" subtitle={`Active: ${ecosystem.shortName}`} />
+                <ModuleHeader
+                    title="Portfolio"
+                    subtitle={<span suppressHydrationWarning>Active: {ecosystem.shortName}</span>}
+                />
                 <EmptyState
                     title="Portfolio read-only surfaces in development (Phase 1)"
                     body="Unified DeFi observation across protocols is being built. Portfolio serves as the foundation for Deploy strategy execution."
@@ -52,7 +55,10 @@ export default function PortfolioPage() {
 
     return (
         <div className="space-y-6">
-            <ModuleHeader title="Portfolio" subtitle={`Active: ${ecosystem.shortName}`} />
+            <ModuleHeader
+                title="Portfolio"
+                subtitle={<span suppressHydrationWarning>Active: {ecosystem.shortName}</span>}
+            />
 
             <div className="flex gap-3 text-xs">
                 <Link href="/portfolio/balances" className="text-white/70 underline hover:text-white">
