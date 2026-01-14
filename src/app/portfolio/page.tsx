@@ -1,13 +1,13 @@
 "use client";
 
 import { useMemo, useSyncExternalStore } from "react";
-import Link from "next/link";
 
 import { ModuleHeader } from "@/components/ui/ModuleHeader";
 import { Panel } from "@/components/ui/Panel";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { RequirementGate } from "@/components/ui/RequirementGate";
 
+import { PortfolioHero } from "@/components/portfolio/PortfolioHero";
 import { BalancesPanel } from "@/components/portfolio/BalancesPanel";
 import { PositionsPanel } from "@/components/portfolio/PositionsPanel";
 import { ActivityPanel } from "@/components/portfolio/ActivityPanel";
@@ -60,22 +60,26 @@ export default function PortfolioPage() {
                 subtitle={<span suppressHydrationWarning>Active: {ecosystem.shortName}</span>}
             />
 
-            <div className="flex gap-3 text-xs">
-                <Link href="/portfolio/balances" className="text-white/70 underline hover:text-white">
-                    Balances
-                </Link>
-                <Link href="/portfolio/positions" className="text-white/70 underline hover:text-white">
-                    Positions
-                </Link>
-                <Link href="/portfolio/activity" className="text-white/70 underline hover:text-white">
-                    Activity
-                </Link>
-            </div>
+            {/* Hero Section - Prominent balance display */}
+            <PortfolioHero />
 
+            {/* Assets Breakdown */}
             <RequirementGate>
-                <BalancesPanel />
-                <PositionsPanel />
-                <ActivityPanel />
+                <div className="space-y-4">
+                    <h2 className="text-lg font-semibold text-white/90">Assets</h2>
+                    <BalancesPanel />
+                </div>
+
+                <div className="space-y-4">
+                    <h2 className="text-lg font-semibold text-white/90">Positions</h2>
+                    <PositionsPanel />
+                </div>
+
+                <div className="space-y-4">
+                    <h2 className="text-lg font-semibold text-white/90">Activity</h2>
+                    <ActivityPanel />
+                </div>
+
                 <ExternalObservability ecosystem={ecosystem} />
             </RequirementGate>
         </div>
