@@ -1,175 +1,226 @@
-# GitHub Copilot Instructions — Classic OS App
+# GitHub Copilot Instructions - Classic OS
 
-## Source of Truth
+Coding guidelines for GitHub Copilot when working on Classic OS (classicos-app).
 
-**Read `AGENTS.md` first.** This file is a quick reference that points to the complete agent guidance.
+## Tech Stack
 
-## Pick Your Role
+- Next.js 16.1.1 (App Router), React 19.2.3, TypeScript 5.x (ES2017 target)
+- wagmi 3.2.0, viem 2.44.0, TanStack React Query 5.90.16
+- Tailwind CSS 4.x, Framer Motion 12.24.12
 
-**One role per task.** Choose based on what you're doing:
-- **Implementing code?** → `code-executor` ([docs/agents/roles/code-executor.md](../docs/agents/roles/code-executor.md))
-- **Reviewing changes?** → `code-reviewer` ([docs/agents/roles/code-reviewer.md](../docs/agents/roles/code-reviewer.md))
-- **Updating docs?** → `docs-maintainer` ([docs/agents/roles/docs-maintainer.md](../docs/agents/roles/docs-maintainer.md))
-- **Designing features?** → `system-designer` ([docs/agents/roles/system-designer.md](../docs/agents/roles/system-designer.md))
-
-See [docs/agents/roles/README.md](../docs/agents/roles/README.md) for role selection guide.
-
-## Quick Commands
+## Commands
 
 ```bash
-npm run lint        # ESLint validation
-npm run typecheck   # TypeScript validation
-npm run build       # Production build check
+npm run dev          # Development server
+npm run lint         # ESLint (must pass)
+npm run typecheck    # TypeScript check (must pass)
+npm run build        # Production build (must pass)
 ```
 
-## Before Committing
+## Core Patterns
 
+### Three-Layer Architecture
+
+**All data access uses three layers:**
+
+1. **Adapter** (`src/lib/`) - Pure functions, RPC-only, no React
+2. **Hook** (`src/hooks/`) - React integration with TanStack Query
+3. **UI** - Explicit state rendering (disconnected, loading, error, empty, data)
+
+Example:
+```typescript
+// Adapter: src/lib/balance/adapter.ts
+export async function getBalance(client, address, chainId): Promise<bigint> {
+  return await client.getBalance({ address })
+}
+
+// Hook: src/hooks/useBalance.ts
+export function useBalance(address) {
+  return useQuery({
+    queryKey: ['balance', address],
+    queryFn: () => getBalance(client, address, chainId),
+    enabled: Boolean(address && client),
+  })
+}
+
+// UI: Component
+function BalanceDisplay({ address }) {
+  const { data, isLoading, error } = useBalance(address)
+  if (!address) return <EmptyState title="No wallet connected" />
+  if (isLoading) return <div>Loading...</div>
+  if (error) return <div>Error: {error.message}</div>
+  return <div>Balance: {formatEther(data)} ETC</div>
+}
+```
+
+### Capability-Based Features
+
+Features are gated by network capabilities:
+
+```typescript
+import { getEcosystem } from '@/lib/ecosystems/registry'
+
+const ecosystem = getEcosystem(activeChainId)
+
+if (!ecosystem.capabilities.portfolio) {
+  return <EmptyState title="Portfolio not available on this network" />
+}
+```
+
+### Workspace State
+
+Active chain and testnet visibility stored in localStorage:
+
+```typescript
+import { useSyncExternalStore } from 'react'
+import { subscribeWorkspace, getActiveChainId } from '@/lib/state/workspace'
+
+const activeChainId = useSyncExternalStore(
+  subscribeWorkspace,
+  getActiveChainId,
+  () => 61  // SSR default
+)
+```
+
+## Protected Files
+
+Do NOT modify these without explicit request:
+
+- `src/app/layout.tsx`
+- `src/components/layout/AppShell.tsx`
+- `src/components/layout/Sidebar.tsx`
+- `src/components/layout/NavItems.ts`
+- `src/lib/ecosystems/registry.ts`
+- `src/lib/state/workspace.ts`
+- `src/lib/networks/registry.ts`
+- `package.json`, `tsconfig.json`, `eslint.config.mjs`
+
+## TypeScript Rules
+
+1. **No BigInt literals** (ES2017 target):
+   ```typescript
+   // ❌ Wrong
+   const value = 1000000000000000000n
+
+   // ✅ Correct
+   const value = BigInt("1000000000000000000")
+   ```
+
+2. **No explicit `any`** - Use `unknown` with type guards
+
+3. **Structural types for viem** - Avoid importing concrete PublicClient types in adapters
+
+4. **Strict null checks** - Always handle undefined explicitly
+
+## Web3 Patterns
+
+**Default: Read-Only**
+- All web3 calls are RPC-only
+- No transaction signing without explicit request
+- No balance transfers or state mutations
+
+**Allowed:**
+- `usePublicClient()`, `useAccount()`, `useBalance()`, `useReadContract()`
+- `useChainId()`, `useConnections()`
+
+**Forbidden (without request):**
+- `useWriteContract()`, `useSendTransaction()`, `useSignMessage()`
+
+**wagmi v3 Syntax:**
+```typescript
+// ✅ Correct (v3 mutations)
+const { mutate: connect } = useConnect()
+const { mutateAsync: switchChain } = useSwitchChain()
+
+onClick={() => connect({ connector: injected() })}
+await switchChain({ chainId: 61 })
+```
+
+**No External APIs:**
+- No indexers, GraphQL endpoints, or external services
+- RPC-only architecture
+
+## Naming Conventions
+
+- **Prose/UI:** "Classic OS" (with space)
+- **Code:** `classicos` (lowercase, no space)
+- **Files:** PascalCase components, kebab-case utilities, camelCase hooks
+
+## Validation Requirements
+
+Before committing:
 ```bash
 npm run lint && npm run typecheck && npm run build
+git diff --stat  # Review changes
 ```
 
-All three must pass. No exceptions.
+All three must pass with zero errors.
 
-## Mandatory Reading
-
-All agent activity MUST comply with rules in:
-- `docs/agents/rules/000-global-rules.md` — Change control, scope boundaries
-- `docs/agents/rules/010-naming-and-prose.md` — Naming ("Classic OS" in prose)
-- `docs/agents/rules/020-tooling-and-typescript.md` — TypeScript target ES2017, no BigInt literals
-- `docs/agents/rules/030-web3-client-rules.md` — wagmi v3 + viem v2 patterns
-- `docs/agents/rules/040-readonly-data-patterns.md` — Adapter → Hook → UI layering
-- `docs/agents/rules/050-quality-and-checks.md` — Pre-completion checklist
-- `docs/agents/rules/090-agentic-workflow.md` — Two-phase workflow
-
-**Quick reference:** See `/docs/agents/README.md` for agent doc index.
-**Prompt templates:** Use `/docs/agents/prompts/*.xml.md` for structured tasks.
-
-## Key Constraints
-
-### TypeScript
-- **Target: ES2017** — Use `BigInt()` constructor, NOT `0n` literals
-- **Strict mode enabled** — Fix all type errors
-- **No concrete viem types in adapters** — Use structural interfaces
-
-### Web3
-- **Default to read-only** — No transaction signing unless explicitly requested
-- **wagmi v3 API** — Mutate-style hooks (`useWriteContract`, NOT `usePrepareWriteContract`)
-- **viem v2** — Structural typing recommended over concrete imports
-
-### Naming
-- **Prose:** "Classic OS" (with space)
-- **Code:** `classicos` (lowercase, no space)
-- **Files:** kebab-case, no "phase-*" names
-
-### Scope Control
-- **Keep diffs small** — One feature per change
-- **No drive-by refactors** — Stay focused on the task
-- **No dependency churn** — Don't add packages without justification
-
-### Prohibited Without Request
-Do NOT modify these areas unless the task explicitly targets them:
-- `src/app/layout.tsx` — Root layout
-- `src/components/layout/AppShell.tsx` — Application shell
-- `src/components/layout/Sidebar.tsx` and `NavItems.ts` — Navigation
-- `src/lib/ecosystems/registry.ts` — Capability truth table
-- `src/lib/state/workspace.ts` — Workspace state
-- `package.json`, `tsconfig.json`, `eslint.config.mjs` — Tooling config
-
-## Code Patterns
-
-### Adding a Read-Only Feature
-1. Create adapter (pure function, no React)
-2. Create hook (wraps adapter with React lifecycle)
-3. Create UI component (handles all states: disconnected, loading, error, empty, data)
-4. Update parent component to wire it in
-
-See `docs/agents/rules/040-readonly-data-patterns.md` for the 3-layer pattern.
-
-### Honest Empty States
-- ✓ "No data available" (truthful)
-- ✓ "No transactions found" (factual)
-- ❌ "Your data will appear soon" (speculative)
-- ❌ "Powerful insights coming" (marketing)
-
-### Component Structure
-```tsx
-"use client"; // if using hooks
-
-interface MyComponentProps {
-  // explicit props
-}
-
-export function MyComponent({ prop }: MyComponentProps) {
-  // hooks
-  // state
-  // handlers
-  // render all states
-  return (/* JSX */);
-}
-```
-
-## Validation Checklist
-
-Before marking work complete:
-- [ ] `npm run lint` passes (zero errors/warnings)
-- [ ] `npm run typecheck` passes (zero errors)
-- [ ] `npm run build` succeeds
-- [ ] `git diff` shows only intended changes
-- [ ] No `console.log` statements left behind
-- [ ] All `docs/agents/rules/*.md` rules followed
-- [ ] Naming conventions respected ("Classic OS" in prose)
-- [ ] Read-only pattern enforced (no transaction signing unless requested)
-
-## Commit Message Format
+## Commit Format
 
 ```
 <scope>: <description>
 
-[optional body]
+Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
 ```
 
-**Scopes:** `Docs:`, `Agents:`, `Portfolio:`, `Markets:`, `Produce:`, `Deploy:`, `Home:`, `Build:`, `Tooling:`, `Refactor:`
+**Scopes:** Portfolio, Produce, Deploy, Markets, Home, Docs, Build, Tooling, Refactor
 
-**Example:**
+## Component Structure
+
 ```
-Portfolio: add activity explorer link
-
-- Create activity links adapter
-- Create useActivityExplorerLink hook
-- Update ActivityPanel to render link
-```
-
-## Common Errors
-
-### "Cannot find module" or "Module not found"
-```bash
-rm -rf .next node_modules package-lock.json
-npm install
-npm run dev
+src/components/
+├── layout/       # Protected - Application frame
+├── primitives/   # Workspace-aware atoms
+├── modules/      # Feature domains (portfolio, produce, deploy, markets)
+├── ui/           # Generic reusable components
+└── providers/    # Context providers
 ```
 
-### BigInt literal error
-```
-Error: BigInt literals are not available when targeting lower than ES2020
-```
-**Fix:** Use `BigInt()` constructor instead of `0n` literals.
+## Key Principles
 
-### wagmi v2 patterns in v3 codebase
-**Wrong:** `usePrepareWriteContract`, `usePrepareContractWrite`
-**Correct:** `useWriteContract`, `useSimulateContract`
+**Honest Empty States:**
+- ✅ "No portfolio items yet"
+- ✅ "Connect wallet to view balances"
+- ❌ "Your data will appear soon"
+- ❌ "Coming soon"
 
-See `docs/agents/rules/030-web3-client-rules.md` for full migration guide.
+**Small Diffs:**
+- One feature per commit
+- No drive-by refactors
+- Focused, reviewable changes
 
-## Additional Resources
+**Capability-First:**
+- Always check ecosystem capabilities before rendering features
+- Use `RequirementGate` for wallet-dependent content
 
-- **Full agent guidance:** `AGENTS.md` at repo root
-- **Agent rules:** `docs/agents/rules/` (mandatory)
-- **Prompt templates:** `docs/agents/prompts/` (task, bugfix, refactor, feature, ui-change)
-- **Architecture docs:** `docs/architecture/`
-- **Module plans:** `docs/modules/<module>/`
-- **Decisions:** `docs/decisions/`
-- **Dev guides:** `docs/dev/`
+## Common Pitfalls to Avoid
+
+❌ **Don't:**
+- Use BigInt literals (`0n`, `10n`)
+- Skip capability checks
+- Modify protected files
+- Add external API calls
+- Create speculative UI
+- Skip validation commands
+
+✅ **Do:**
+- Use `BigInt()` constructor
+- Check capabilities first
+- Ask before touching protected files
+- Keep to RPC-only calls
+- Render honest empty states
+- Run lint + typecheck + build
+
+## When to Stop and Ask
+
+- Unsure which approach to take
+- Change spans multiple modules
+- Protected file needs modification
+- External APIs or new dependencies needed
+- Transaction signing required
+- Requirements are ambiguous
 
 ---
 
-**For comprehensive instructions, see `AGENTS.md` at the repo root.**
+For detailed patterns, see [.claude/instructions.md](../.claude/instructions.md)
