@@ -3,9 +3,11 @@
 import { formatEther } from "viem";
 import { useChainId } from "wagmi";
 import { usePortfolioSummary } from "@/hooks/usePortfolioSummary";
-import { useETCPrice } from "@/hooks/useETCPrice";
+import { useETCEcosystemPrices } from "@/hooks/useETCEcosystemPrices";
+import { getEcosystem } from "@/lib/ecosystems/registry";
 import { CHAINS_BY_ID } from "@/lib/networks/registry";
 import { formatTokenBalance, formatNumber } from "@/lib/utils/format";
+import { calculateNativeUSDValue, formatUSDValue } from "@/lib/portfolio/portfolio-value";
 import { CollapsiblePanel } from "@/components/ui/CollapsiblePanel";
 
 /**
@@ -19,9 +21,11 @@ import { CollapsiblePanel } from "@/components/ui/CollapsiblePanel";
 export function PortfolioSummary() {
     const chainId = useChainId();
     const summary = usePortfolioSummary();
-    const { data: priceData, isLoading: isPriceLoading } = useETCPrice();
+    const { data: prices, isLoading: isPriceLoading } = useETCEcosystemPrices();
+    const ecosystem = getEcosystem(chainId);
     const chain = CHAINS_BY_ID[chainId];
     const nativeSymbol = chain?.nativeCurrency?.symbol || "ETH";
+    const isTestnet = ecosystem.kind === "testnet";
 
     // State 1: Disconnected
     if (!summary.isConnected) {
@@ -104,12 +108,14 @@ export function PortfolioSummary() {
         ? formatTokenBalance(formatEther(summary.native.balance))
         : "0";
 
-    // Calculate USD value if we have both balance and price
-    const nativeBalanceFloat = summary.native.balance
-        ? parseFloat(formatEther(summary.native.balance))
+    // Calculate USD value for native balance
+    const nativeUSDValue = prices && summary.native.balance
+        ? calculateNativeUSDValue(summary.native.balance, prices, isTestnet)
         : 0;
-    const usdValue =
-        priceData && nativeBalanceFloat > 0 ? nativeBalanceFloat * priceData.price : null;
+
+    // For Phase 1, total value = native balance only
+    // TODO Phase 2: Add token values and LP position values
+    const totalPortfolioValue = nativeUSDValue;
 
     const assetCountLabel = `${summary.totalAssets} ${summary.totalAssets === 1 ? "Asset" : "Assets"}`;
 
@@ -119,6 +125,32 @@ export function PortfolioSummary() {
             description={assetCountLabel}
             defaultExpanded={true}
         >
+            {/* Total Portfolio Value Card */}
+            {totalPortfolioValue > 0 && (
+                <div className="mb-4 rounded-lg border border-blue-500/30 bg-blue-500/10 p-4">
+                    <div className="text-xs font-medium uppercase tracking-wide text-white/70">
+                        Total Portfolio Value
+                    </div>
+                    <div className="mt-2 flex items-baseline gap-2">
+                        {isPriceLoading ? (
+                            <div className="text-sm text-white/50">Loading prices...</div>
+                        ) : (
+                            <>
+                                <div className="font-mono text-2xl font-semibold text-white/95">
+                                    {formatUSDValue(totalPortfolioValue)}
+                                </div>
+                                {isTestnet && (
+                                    <div className="text-xs text-white/50">* Testnet Assets</div>
+                                )}
+                            </>
+                        )}
+                    </div>
+                    <div className="mt-1 text-xs text-white/50">
+                        Based on CoinGecko prices (ETC, USC, WETC)
+                    </div>
+                </div>
+            )}
+
             {/* Metric Cards */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 {/* Native Balance Card */}
@@ -142,10 +174,10 @@ export function PortfolioSummary() {
                     {summary.native.hasBalance && (
                         <div className="mt-2 text-sm text-white/50">
                             {isPriceLoading && <span>Loading price...</span>}
-                            {!isPriceLoading && usdValue !== null && (
-                                <span>${formatNumber(usdValue, 2, 2)} USD</span>
+                            {!isPriceLoading && nativeUSDValue > 0 && (
+                                <span>{formatUSDValue(nativeUSDValue)}</span>
                             )}
-                            {!isPriceLoading && priceData && usdValue === null && (
+                            {!isPriceLoading && prices && nativeUSDValue === 0 && (
                                 <span>Price unavailable</span>
                             )}
                         </div>
