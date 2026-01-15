@@ -6,11 +6,13 @@ import { Panel } from "@/components/ui/Panel";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useETCswapV2Positions } from "@/hooks/useETCswapV2Positions";
 import { PositionCard } from "@/components/portfolio/PositionCard";
+import { UpdateIndicator } from "@/components/portfolio/UpdateIndicator";
 
 export function PositionsPanel() {
     const connections = useConnections();
     const chainId = useChainId();
-    const { data: positions, isLoading, error } = useETCswapV2Positions();
+    const { data: positions, isLoading, error, dataUpdatedAt, isFetching } =
+        useETCswapV2Positions();
 
     const address = useMemo(() => {
         const first = connections?.[0];
@@ -75,6 +77,13 @@ export function PositionsPanel() {
     return (
         <Panel title="Positions" description="DeFi protocol positions">
             <div className="space-y-3">
+                {/* Update indicator at top of positions list */}
+                {dataUpdatedAt && (
+                    <div className="px-1">
+                        <UpdateIndicator dataUpdatedAt={dataUpdatedAt} isFetching={isFetching} />
+                    </div>
+                )}
+
                 {positions.map((position) => (
                     <PositionCard
                         key={position.lpTokenAddress}

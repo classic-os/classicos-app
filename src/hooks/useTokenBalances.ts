@@ -10,7 +10,7 @@ import { getTokensForChain } from "@/lib/portfolio/token-registry";
  * Uses individual RPC calls for each token (fallback from multicall due to compatibility).
  * Only returns tokens with non-zero balances.
  *
- * Automatically refetches every 60 seconds and considers data stale after 30 seconds.
+ * Automatically refetches every 5 minutes and considers data stale after 2.5 minutes.
  * Only runs when client and address are available.
  *
  * @returns React Query result with array of token balances, loading state, and error
@@ -43,8 +43,8 @@ export function useTokenBalances() {
             return await getERC20Balances(client, address, tokens);
         },
         enabled: Boolean(client && address),
-        staleTime: 30_000, // 30 seconds
-        refetchInterval: 60_000, // 1 minute
+        staleTime: 150_000, // 2.5 minutes
+        refetchInterval: 300_000, // 5 minutes
         retry: 2, // Retry failed requests twice
         retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
     });

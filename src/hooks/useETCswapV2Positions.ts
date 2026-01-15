@@ -9,7 +9,7 @@ import { getETCswapV2Positions } from "@/lib/portfolio/adapters/etcswap-v2-posit
  * Discovers positions by checking all possible token pairs from the registry.
  * Only returns positions with non-zero LP token balances.
  *
- * Automatically refetches every 120 seconds (positions change less frequently than balances).
+ * Automatically refetches every 10 minutes (positions change less frequently than balances).
  * Only runs when client and address are available.
  *
  * @returns React Query result with array of ETCswap V2 positions, loading state, and error
@@ -35,8 +35,8 @@ export function useETCswapV2Positions() {
             return await getETCswapV2Positions(client, address, chainId);
         },
         enabled: Boolean(client && address),
-        staleTime: 60_000, // 1 minute (positions change less frequently)
-        refetchInterval: 120_000, // 2 minutes
+        staleTime: 300_000, // 5 minutes (positions change less frequently)
+        refetchInterval: 600_000, // 10 minutes
         retry: 2, // Retry failed requests twice
         retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
     });

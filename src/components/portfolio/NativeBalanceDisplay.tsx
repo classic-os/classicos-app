@@ -4,12 +4,13 @@ import { useMemo } from "react";
 import { useChainId, useConnections } from "wagmi";
 import { formatEther } from "viem";
 import { useNativeBalance } from "@/hooks/useNativeBalance";
+import { UpdateIndicator } from "@/components/portfolio/UpdateIndicator";
 import { CHAINS_BY_ID } from "@/lib/networks/registry";
 
 export function NativeBalanceDisplay() {
     const connections = useConnections();
     const chainId = useChainId();
-    const { data: balance, isLoading, error } = useNativeBalance();
+    const { data: balance, isLoading, error, dataUpdatedAt, isFetching } = useNativeBalance();
 
     const address = useMemo(() => {
         const first = connections?.[0];
@@ -71,6 +72,15 @@ export function NativeBalanceDisplay() {
                     {isZero && (
                         <div className="mt-1 text-xs text-white/45">
                             No {nativeSymbol} in this wallet
+                        </div>
+                    )}
+                    {/* Update indicator */}
+                    {dataUpdatedAt && (
+                        <div className="mt-2">
+                            <UpdateIndicator
+                                dataUpdatedAt={dataUpdatedAt}
+                                isFetching={isFetching}
+                            />
                         </div>
                     )}
                 </div>

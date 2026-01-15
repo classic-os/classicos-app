@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { useChainId, useConnections } from "wagmi";
 import { formatUnits } from "viem";
 import { useTokenBalances } from "@/hooks/useTokenBalances";
+import { UpdateIndicator } from "@/components/portfolio/UpdateIndicator";
 import { CHAINS_BY_ID } from "@/lib/networks/registry";
 
 /**
@@ -16,7 +17,8 @@ import { CHAINS_BY_ID } from "@/lib/networks/registry";
 export function TokenBalancesDisplay() {
     const connections = useConnections();
     const chainId = useChainId();
-    const { data: tokenBalances, isLoading, error } = useTokenBalances();
+    const { data: tokenBalances, isLoading, error, dataUpdatedAt, isFetching } =
+        useTokenBalances();
 
     const address = useMemo(() => {
         const first = connections?.[0];
@@ -76,6 +78,13 @@ export function TokenBalancesDisplay() {
     // State 5: Data (tokens with balances)
     return (
         <div className="space-y-3">
+            {/* Update indicator at top of token list */}
+            {dataUpdatedAt && (
+                <div className="px-1">
+                    <UpdateIndicator dataUpdatedAt={dataUpdatedAt} isFetching={isFetching} />
+                </div>
+            )}
+
             {tokenBalances.map((tokenBalance) => {
                 const { token, balance } = tokenBalance;
                 const formattedBalance = formatUnits(balance, token.decimals);

@@ -6,7 +6,7 @@ import { getNativeBalance } from "@/lib/portfolio/adapters/native-balance";
 /**
  * React Query hook to fetch native balance for connected wallet.
  *
- * Automatically refetches every 60 seconds and considers data stale after 30 seconds.
+ * Automatically refetches every 5 minutes and considers data stale after 2.5 minutes.
  * Only runs when client and address are available.
  *
  * @returns React Query result with balance (bigint), loading state, and error
@@ -32,8 +32,8 @@ export function useNativeBalance() {
             return await getNativeBalance(client, address, chainId);
         },
         enabled: Boolean(client && address),
-        staleTime: 30_000, // 30 seconds
-        refetchInterval: 60_000, // 1 minute
+        staleTime: 150_000, // 2.5 minutes
+        refetchInterval: 300_000, // 5 minutes
         retry: 2, // Retry failed requests twice
         retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
     });
