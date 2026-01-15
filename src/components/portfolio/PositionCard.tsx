@@ -2,6 +2,8 @@ import { formatUnits } from "viem";
 import type { ETCswapV2Position } from "@/lib/portfolio/adapters/etcswap-v2-positions";
 import type { ETCPriceData } from "@/lib/portfolio/price-adapter";
 import type { DerivedPrice } from "@/lib/portfolio/derived-prices";
+import type { ExchangeRates } from "@/lib/currencies/exchange-rates";
+import type { CurrencyCode } from "@/lib/currencies/registry";
 import { ProtocolBadge } from "@/components/portfolio/ProtocolBadge";
 import { TokenLogo } from "@/components/portfolio/TokenLogo";
 import { CopyButton } from "@/components/ui/CopyButton";
@@ -9,7 +11,8 @@ import { ETCSWAP_V2_METADATA } from "@/lib/protocols/etcswap-contracts";
 import { CHAINS_BY_ID } from "@/lib/networks/registry";
 import { getTokenInfo } from "@/lib/portfolio/token-registry";
 import { formatTokenBalance, formatNumber } from "@/lib/utils/format";
-import { formatUSDValue, calculateLPPositionUSDValue } from "@/lib/portfolio/portfolio-value";
+import { calculateLPPositionUSDValue } from "@/lib/portfolio/portfolio-value";
+import { formatCurrencyValue } from "@/lib/currencies/format";
 import { estimateAPY } from "@/lib/portfolio/lp-apy";
 import { getTokenPrice } from "@/lib/portfolio/derived-prices";
 
@@ -18,6 +21,8 @@ type PositionCardProps = {
     chainId: number;
     prices?: ETCPriceData;
     derivedPrices?: Map<string, DerivedPrice>;
+    currency: CurrencyCode;
+    exchangeRates?: ExchangeRates;
 };
 
 /**
@@ -26,7 +31,7 @@ type PositionCardProps = {
  * Displays a single LP position with pool details, reserves, share percentage, and APY estimate.
  * Follows 2025 DeFi Saver pattern with protocol badge and pool metrics.
  */
-export function PositionCard({ position, chainId, prices, derivedPrices }: PositionCardProps) {
+export function PositionCard({ position, chainId, prices, derivedPrices, currency, exchangeRates }: PositionCardProps) {
     const { token0, token1, lpBalance, lpTotalSupply, poolShare } = position;
 
     // Look up token metadata from registry for logos
@@ -149,7 +154,7 @@ export function PositionCard({ position, chainId, prices, derivedPrices }: Posit
                     <div className="text-xs text-white/70">Your Position Value</div>
                     {positionValueUSD !== null && (
                         <div className="font-mono text-lg font-semibold text-white/95">
-                            {formatUSDValue(positionValueUSD)}
+                            {formatCurrencyValue(positionValueUSD, currency, exchangeRates)}
                         </div>
                     )}
                 </div>
@@ -250,7 +255,7 @@ export function PositionCard({ position, chainId, prices, derivedPrices }: Posit
                                     </div>
                                     {token0Price !== null && (
                                         <div className="mt-1 text-xs text-white/50">
-                                            {formatUSDValue(token0Price)} per {token0.symbol}
+                                            {formatCurrencyValue(token0Price, currency, exchangeRates)} per {token0.symbol}
                                         </div>
                                     )}
                                     {token0PriceSource && (
@@ -266,7 +271,7 @@ export function PositionCard({ position, chainId, prices, derivedPrices }: Posit
                                     </div>
                                     {token1Price !== null && (
                                         <div className="mt-1 text-xs text-white/50">
-                                            {formatUSDValue(token1Price)} per {token1.symbol}
+                                            {formatCurrencyValue(token1Price, currency, exchangeRates)} per {token1.symbol}
                                         </div>
                                     )}
                                     {token1PriceSource && (

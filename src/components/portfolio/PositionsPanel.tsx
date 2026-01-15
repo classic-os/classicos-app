@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 import { useChainId, useConnections } from "wagmi";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useETCswapV2Positions } from "@/hooks/useETCswapV2Positions";
@@ -9,6 +9,8 @@ import { PositionCard } from "@/components/portfolio/PositionCard";
 import { UpdateIndicator } from "@/components/portfolio/UpdateIndicator";
 import { CollapsiblePanel } from "@/components/ui/CollapsiblePanel";
 import { CHAINS_BY_ID } from "@/lib/networks/registry";
+import { getCurrency, subscribeWorkspace } from "@/lib/state/workspace";
+import { useExchangeRates } from "@/lib/currencies/useExchangeRates";
 
 export function PositionsPanel() {
     const connections = useConnections();
@@ -16,6 +18,8 @@ export function PositionsPanel() {
     const { data: positions, isLoading, error, dataUpdatedAt, isFetching } =
         useETCswapV2Positions();
     const { knownPrices: prices, derivedPrices } = useEnhancedPrices();
+    const currency = useSyncExternalStore(subscribeWorkspace, getCurrency, getCurrency);
+    const { data: exchangeRates } = useExchangeRates();
 
     const address = useMemo(() => {
         const first = connections?.[0];
@@ -120,6 +124,8 @@ export function PositionsPanel() {
                         chainId={chainId}
                         prices={prices}
                         derivedPrices={derivedPrices}
+                        currency={currency}
+                        exchangeRates={exchangeRates}
                     />
                 ))}
             </div>

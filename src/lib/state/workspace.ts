@@ -1,7 +1,9 @@
 import { CHAINS_BY_ID, DEFAULT_ACTIVE_CHAIN_ID } from "@/lib/networks/registry";
+import { DEFAULT_CURRENCY, isValidCurrency, type CurrencyCode } from "@/lib/currencies/registry";
 
 const KEY_ACTIVE = "classicos:activeChainId";
 const KEY_SHOW_TESTNETS = "classicos:showTestnets";
+const KEY_CURRENCY = "classicos:currency";
 const EVENT_NAME = "classicos:workspace";
 
 function emitWorkspaceChange() {
@@ -54,5 +56,20 @@ export function getShowTestnets(): boolean {
 export function setShowTestnets(v: boolean) {
     if (typeof window === "undefined") return;
     window.localStorage.setItem(KEY_SHOW_TESTNETS, v ? "true" : "false");
+    emitWorkspaceChange();
+}
+
+export function getCurrency(): CurrencyCode {
+    if (typeof window === "undefined") return DEFAULT_CURRENCY;
+    const stored = window.localStorage.getItem(KEY_CURRENCY);
+    if (stored && isValidCurrency(stored)) {
+        return stored;
+    }
+    return DEFAULT_CURRENCY;
+}
+
+export function setCurrency(currency: CurrencyCode) {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem(KEY_CURRENCY, currency);
     emitWorkspaceChange();
 }

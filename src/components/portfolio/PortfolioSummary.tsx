@@ -2,6 +2,7 @@
 
 import { formatEther } from "viem";
 import { useChainId } from "wagmi";
+import { useSyncExternalStore } from "react";
 import { usePortfolioSummary } from "@/hooks/usePortfolioSummary";
 import { useETCEcosystemPrices } from "@/hooks/useETCEcosystemPrices";
 import { useEnhancedPrices } from "@/hooks/useEnhancedPrices";
@@ -12,7 +13,6 @@ import {
     calculateNativeUSDValue,
     calculateTokensUSDValue,
     calculatePositionsUSDValue,
-    formatUSDValue,
 } from "@/lib/portfolio/portfolio-value";
 import { CollapsiblePanel } from "@/components/ui/CollapsiblePanel";
 import { PriceChange } from "@/components/ui/PriceChange";
@@ -22,6 +22,10 @@ import { useTokenBalances } from "@/hooks/useTokenBalances";
 import { useETCswapV2Positions } from "@/hooks/useETCswapV2Positions";
 import { usePriceHistory } from "@/hooks/usePriceHistory";
 import { useNativeBalance } from "@/hooks/useNativeBalance";
+import { getCurrency, subscribeWorkspace } from "@/lib/state/workspace";
+import { useExchangeRates } from "@/lib/currencies/useExchangeRates";
+import { formatCurrencyValue } from "@/lib/currencies/format";
+import { CurrencySelector } from "@/components/ui/CurrencySelector";
 
 /**
  * Portfolio Summary Component
@@ -44,6 +48,10 @@ export function PortfolioSummary() {
     const chain = CHAINS_BY_ID[chainId];
     const nativeSymbol = chain?.nativeCurrency?.symbol || "ETH";
     const isTestnet = ecosystem.kind === "testnet";
+
+    // Currency selection and exchange rates
+    const currency = useSyncExternalStore(subscribeWorkspace, getCurrency, getCurrency);
+    const { data: exchangeRates } = useExchangeRates();
 
     // Refresh all portfolio data
     const handleRefresh = async () => {
@@ -190,8 +198,11 @@ export function PortfolioSummary() {
             {totalPortfolioValue > 0 && (
                 <div className="mb-4 rounded-lg border border-blue-500/30 bg-blue-500/10 p-4">
                     <div className="flex items-center justify-between">
-                        <div className="text-xs font-medium uppercase tracking-wide text-white/70">
-                            Total Portfolio Value
+                        <div className="flex items-center gap-2">
+                            <div className="text-xs font-medium uppercase tracking-wide text-white/70">
+                                Total Portfolio Value
+                            </div>
+                            <CurrencySelector variant="compact" />
                         </div>
                         <RefreshButton onRefresh={handleRefresh} size="sm" variant="outline" showLabel={false} />
                     </div>
@@ -201,7 +212,7 @@ export function PortfolioSummary() {
                         ) : (
                             <>
                                 <div className="font-mono text-2xl font-semibold text-white/95">
-                                    {formatUSDValue(totalPortfolioValue)}
+                                    {formatCurrencyValue(totalPortfolioValue, currency, exchangeRates)}
                                 </div>
                                 {prices?.etc.change24h !== undefined && (
                                     <PriceChange change24h={prices.etc.change24h} size="md" />
@@ -237,13 +248,13 @@ export function PortfolioSummary() {
                             <div className="text-sm text-white/50">No balance</div>
                         )}
                     </div>
-                    {/* USD Value */}
+                    {/* Currency Value */}
                     {summary.native.hasBalance && (
                         <div className="mt-2 flex items-baseline gap-2">
                             <div className="text-sm text-white/50">
                                 {isPriceLoading && <span>Loading price...</span>}
                                 {!isPriceLoading && nativeUSDValue > 0 && (
-                                    <span>{formatUSDValue(nativeUSDValue)}</span>
+                                    <span>{formatCurrencyValue(nativeUSDValue, currency, exchangeRates)}</span>
                                 )}
                                 {!isPriceLoading && prices && nativeUSDValue === 0 && (
                                     <span>Price unavailable</span>
@@ -269,12 +280,12 @@ export function PortfolioSummary() {
                             {summary.tokens.count === 1 ? "Token" : "Tokens"}
                         </div>
                     </div>
-                    {/* USD Value */}
+                    {/* Currency Value */}
                     {summary.tokens.hasBalances && (
                         <div className="mt-2 text-sm text-white/50">
                             {isPriceLoading && <span>Loading price...</span>}
                             {!isPriceLoading && tokensUSDValue > 0 && (
-                                <span>{formatUSDValue(tokensUSDValue)}</span>
+                                <span>{formatCurrencyValue(tokensUSDValue, currency, exchangeRates)}</span>
                             )}
                             {!isPriceLoading && prices && tokensUSDValue === 0 && (
                                 <span>Price unavailable</span>
@@ -299,12 +310,12 @@ export function PortfolioSummary() {
                             {summary.positions.count === 1 ? "Position" : "Positions"}
                         </div>
                     </div>
-                    {/* USD Value */}
+                    {/* Currency Value */}
                     {summary.positions.hasPositions && (
                         <div className="mt-2 text-sm text-white/50">
                             {isPriceLoading && <span>Loading price...</span>}
                             {!isPriceLoading && positionsUSDValue > 0 && (
-                                <span>{formatUSDValue(positionsUSDValue)}</span>
+                                <span>{formatCurrencyValue(positionsUSDValue, currency, exchangeRates)}</span>
                             )}
                             {!isPriceLoading && prices && positionsUSDValue === 0 && (
                                 <span>Price unavailable</span>

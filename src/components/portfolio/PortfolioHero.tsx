@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 import { useChainId, useConnections } from "wagmi";
 import { formatEther } from "viem";
 import { useNativeBalance } from "@/hooks/useNativeBalance";
@@ -12,7 +12,10 @@ import { PriceChange } from "@/components/ui/PriceChange";
 import { CHAINS_BY_ID } from "@/lib/networks/registry";
 import { getEcosystem } from "@/lib/ecosystems/registry";
 import { formatTokenBalance } from "@/lib/utils/format";
-import { calculateNativeUSDValue, formatUSDValue } from "@/lib/portfolio/portfolio-value";
+import { calculateNativeUSDValue } from "@/lib/portfolio/portfolio-value";
+import { getCurrency, subscribeWorkspace } from "@/lib/state/workspace";
+import { useExchangeRates } from "@/lib/currencies/useExchangeRates";
+import { formatCurrencyValue } from "@/lib/currencies/format";
 
 const ETC_LOGO_URL = "https://raw.githubusercontent.com/etcswap/token-list/refs/heads/main/assets/ethereum-classic.png";
 
@@ -26,6 +29,8 @@ export function PortfolioHero() {
     const { data: balance, isLoading, error } = useNativeBalance();
     const { data: prices } = useETCEcosystemPrices();
     const { data: priceHistory } = usePriceHistory("ethereum-classic");
+    const currency = useSyncExternalStore(subscribeWorkspace, getCurrency, getCurrency);
+    const { data: exchangeRates } = useExchangeRates();
 
     const address = useMemo(() => {
         const first = connections?.[0];
@@ -114,7 +119,7 @@ export function PortfolioHero() {
                             {usdValue !== null && usdValue > 0 && (
                                 <div className="flex items-baseline gap-2">
                                     <div className="text-lg text-white/70">
-                                        {formatUSDValue(usdValue)}
+                                        {formatCurrencyValue(usdValue, currency, exchangeRates)}
                                     </div>
                                     {prices?.etc.change24h !== undefined && (
                                         <PriceChange change24h={prices.etc.change24h} size="sm" />

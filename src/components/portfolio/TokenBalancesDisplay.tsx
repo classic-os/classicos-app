@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 import { useChainId, useConnections } from "wagmi";
 import { formatUnits } from "viem";
 import { useTokenBalances } from "@/hooks/useTokenBalances";
@@ -11,9 +11,12 @@ import { PriceChange } from "@/components/ui/PriceChange";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { CHAINS_BY_ID } from "@/lib/networks/registry";
 import { formatTokenBalance } from "@/lib/utils/format";
-import { formatUSDValue, calculateTokenUSDValue } from "@/lib/portfolio/portfolio-value";
+import { calculateTokenUSDValue } from "@/lib/portfolio/portfolio-value";
 import { CollapsiblePanel } from "@/components/ui/CollapsiblePanel";
 import { getTokenPrice } from "@/lib/portfolio/derived-prices";
+import { getCurrency, subscribeWorkspace } from "@/lib/state/workspace";
+import { useExchangeRates } from "@/lib/currencies/useExchangeRates";
+import { formatCurrencyValue } from "@/lib/currencies/format";
 
 /**
  * Token Balances Display Component
@@ -28,6 +31,8 @@ export function TokenBalancesDisplay() {
     const { data: tokenBalances, isLoading, error, dataUpdatedAt, isFetching } =
         useTokenBalances();
     const { knownPrices: prices, derivedPrices } = useEnhancedPrices();
+    const currency = useSyncExternalStore(subscribeWorkspace, getCurrency, getCurrency);
+    const { data: exchangeRates } = useExchangeRates();
 
     const address = useMemo(() => {
         const first = connections?.[0];
@@ -225,7 +230,7 @@ export function TokenBalancesDisplay() {
                                     </div>
                                     {spotPrice !== null && (
                                         <div className="mt-1 text-xs text-white/50">
-                                            {formatUSDValue(spotPrice)} per {token.symbol}
+                                            {formatCurrencyValue(spotPrice, currency, exchangeRates)} per {token.symbol}
                                         </div>
                                     )}
                                 </div>
@@ -239,7 +244,7 @@ export function TokenBalancesDisplay() {
                                         {usdValue !== null && usdValue > 0 && (
                                             <>
                                                 <span className="text-white/30">•</span>
-                                                <span>{formatUSDValue(usdValue)}</span>
+                                                <span>{formatCurrencyValue(usdValue, currency, exchangeRates)}</span>
                                             </>
                                         )}
                                     </div>
