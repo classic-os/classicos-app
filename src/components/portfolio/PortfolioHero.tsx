@@ -4,9 +4,15 @@ import { useMemo } from "react";
 import { useChainId, useConnections } from "wagmi";
 import { formatEther } from "viem";
 import { useNativeBalance } from "@/hooks/useNativeBalance";
+import { useETCEcosystemPrices } from "@/hooks/useETCEcosystemPrices";
+import { usePriceHistory } from "@/hooks/usePriceHistory";
 import { TokenLogo } from "@/components/portfolio/TokenLogo";
+import { Sparkline } from "@/components/ui/Sparkline";
+import { PriceChange } from "@/components/ui/PriceChange";
 import { CHAINS_BY_ID } from "@/lib/networks/registry";
+import { getEcosystem } from "@/lib/ecosystems/registry";
 import { formatTokenBalance } from "@/lib/utils/format";
+import { calculateNativeUSDValue, formatUSDValue } from "@/lib/portfolio/portfolio-value";
 
 const ETC_LOGO_URL = "https://raw.githubusercontent.com/etcswap/token-list/refs/heads/main/assets/ethereum-classic.png";
 
@@ -18,6 +24,8 @@ export function PortfolioHero() {
     const connections = useConnections();
     const chainId = useChainId();
     const { data: balance, isLoading, error } = useNativeBalance();
+    const { data: prices } = useETCEcosystemPrices();
+    const { data: priceHistory } = usePriceHistory("ethereum-classic");
 
     const address = useMemo(() => {
         const first = connections?.[0];
@@ -27,7 +35,9 @@ export function PortfolioHero() {
 
     const isConnected = Boolean(address);
     const chain = CHAINS_BY_ID[chainId];
+    const ecosystem = getEcosystem(chainId);
     const nativeSymbol = chain?.nativeCurrency?.symbol || "ETH";
+    const isTestnet = ecosystem.kind === "testnet";
 
     // Disconnected state
     if (!isConnected || !address) {
@@ -72,34 +82,72 @@ export function PortfolioHero() {
     const displayBalance = formatTokenBalance(formattedBalance);
     const isZero = balance === BigInt(0);
 
+    // Calculate USD value
+    const usdValue = prices && balance
+        ? calculateNativeUSDValue(balance, prices, isTestnet)
+        : null;
+
+    // Prepare sparkline data
+    const sparklineData = priceHistory?.prices.map((p) => p.price) || [];
+    const sparklineColor = priceHistory && priceHistory.change >= 0 ? "green" : "red";
+
     return (
         <div
             className="rounded-2xl border border-white/10 bg-gradient-to-br from-black/40 to-black/20 p-8"
             suppressHydrationWarning
         >
-            <div className="space-y-4">
+            <div className="space-y-6">
                 {/* Label */}
                 <div className="text-xs font-medium uppercase tracking-wider text-white/45">
                     Total Balance
                 </div>
 
-                {/* Main Balance Display */}
-                <div className="flex items-center gap-4">
-                    <TokenLogo logoURI={ETC_LOGO_URL} symbol={nativeSymbol} size="lg" />
-                    <div className="space-y-2">
-                        <div className="text-5xl font-bold text-white/95">
-                            {displayBalance} {nativeSymbol}
-                        </div>
-                        {isZero && (
-                            <div className="text-sm text-white/45">
-                                No {nativeSymbol} in this wallet
+                {/* Main Balance Display with Chart */}
+                <div className="flex items-start justify-between gap-6">
+                    {/* Left: Balance */}
+                    <div className="flex items-center gap-4">
+                        <TokenLogo logoURI={ETC_LOGO_URL} symbol={nativeSymbol} size="lg" />
+                        <div className="space-y-2">
+                            <div className="text-5xl font-bold text-white/95">
+                                {displayBalance} {nativeSymbol}
                             </div>
-                        )}
+                            {usdValue !== null && usdValue > 0 && (
+                                <div className="flex items-baseline gap-2">
+                                    <div className="text-lg text-white/70">
+                                        {formatUSDValue(usdValue)}
+                                    </div>
+                                    {prices?.etc.change24h !== undefined && (
+                                        <PriceChange change24h={prices.etc.change24h} size="sm" />
+                                    )}
+                                </div>
+                            )}
+                            {isZero && (
+                                <div className="text-sm text-white/45">
+                                    No {nativeSymbol} in this wallet
+                                </div>
+                            )}
+                        </div>
                     </div>
+
+                    {/* Right: Sparkline Chart */}
+                    {sparklineData.length > 0 && (
+                        <div className="flex-shrink-0">
+                            <Sparkline
+                                data={sparklineData}
+                                width={200}
+                                height={80}
+                                color={sparklineColor}
+                                showGradient={true}
+                            />
+                            <div className="mt-1 text-right text-xs text-white/50">
+                                7 day trend
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Quick Stats */}
-                <div className="flex items-center gap-4 pt-2">
+                <div className="flex items-center gap-4">
                     <div className="rounded-lg bg-white/5 px-3 py-2">
                         <div className="text-xs text-white/55">Network</div>
                         <div className="text-sm font-medium text-white/90">
