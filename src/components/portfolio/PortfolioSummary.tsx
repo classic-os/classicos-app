@@ -14,6 +14,7 @@ import {
     formatUSDValue,
 } from "@/lib/portfolio/portfolio-value";
 import { CollapsiblePanel } from "@/components/ui/CollapsiblePanel";
+import { PriceChange } from "@/components/ui/PriceChange";
 import { useTokenBalances } from "@/hooks/useTokenBalances";
 import { useETCswapV2Positions } from "@/hooks/useETCswapV2Positions";
 
@@ -164,6 +165,9 @@ export function PortfolioSummary() {
                                 <div className="font-mono text-2xl font-semibold text-white/95">
                                     {formatUSDValue(totalPortfolioValue)}
                                 </div>
+                                {prices?.etc.change24h !== undefined && (
+                                    <PriceChange change24h={prices.etc.change24h} size="md" />
+                                )}
                                 {isTestnet && (
                                     <div className="text-xs text-white/50">* Testnet Assets</div>
                                 )}
@@ -197,13 +201,18 @@ export function PortfolioSummary() {
                     </div>
                     {/* USD Value */}
                     {summary.native.hasBalance && (
-                        <div className="mt-2 text-sm text-white/50">
-                            {isPriceLoading && <span>Loading price...</span>}
-                            {!isPriceLoading && nativeUSDValue > 0 && (
-                                <span>{formatUSDValue(nativeUSDValue)}</span>
-                            )}
-                            {!isPriceLoading && prices && nativeUSDValue === 0 && (
-                                <span>Price unavailable</span>
+                        <div className="mt-2 flex items-baseline gap-2">
+                            <div className="text-sm text-white/50">
+                                {isPriceLoading && <span>Loading price...</span>}
+                                {!isPriceLoading && nativeUSDValue > 0 && (
+                                    <span>{formatUSDValue(nativeUSDValue)}</span>
+                                )}
+                                {!isPriceLoading && prices && nativeUSDValue === 0 && (
+                                    <span>Price unavailable</span>
+                                )}
+                            </div>
+                            {!isPriceLoading && prices?.etc.change24h !== undefined && (
+                                <PriceChange change24h={prices.etc.change24h} size="sm" />
                             )}
                         </div>
                     )}

@@ -13,6 +13,7 @@ import { NextResponse } from "next/server";
  * - ids: Comma-separated list of CoinGecko coin IDs
  * - vs_currencies: Currency to get prices in (default: usd)
  * - include_last_updated_at: Include timestamp (default: true)
+ * - include_24hr_change: Include 24h price change percentage (default: false)
  */
 
 // In-memory cache for development/production
@@ -24,6 +25,7 @@ export async function GET(request: Request) {
     const ids = searchParams.get("ids");
     const vsCurrencies = searchParams.get("vs_currencies") || "usd";
     const includeLastUpdated = searchParams.get("include_last_updated_at") || "true";
+    const include24hrChange = searchParams.get("include_24hr_change") || "false";
 
     if (!ids) {
         return NextResponse.json(
@@ -32,8 +34,8 @@ export async function GET(request: Request) {
         );
     }
 
-    // Create cache key
-    const cacheKey = `${ids}-${vsCurrencies}-${includeLastUpdated}`;
+    // Create cache key (include all parameters)
+    const cacheKey = `${ids}-${vsCurrencies}-${includeLastUpdated}-${include24hrChange}`;
 
     // Check cache first
     const cached = priceCache.get(cacheKey);
@@ -47,7 +49,7 @@ export async function GET(request: Request) {
     }
 
     try {
-        const coingeckoUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=${vsCurrencies}&include_last_updated_at=${includeLastUpdated}`;
+        const coingeckoUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=${vsCurrencies}&include_last_updated_at=${includeLastUpdated}&include_24hr_change=${include24hrChange}`;
 
         const response = await fetch(coingeckoUrl, {
             method: "GET",

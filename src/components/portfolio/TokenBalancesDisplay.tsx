@@ -4,10 +4,13 @@ import { useMemo } from "react";
 import { useChainId, useConnections } from "wagmi";
 import { formatUnits } from "viem";
 import { useTokenBalances } from "@/hooks/useTokenBalances";
+import { useETCEcosystemPrices } from "@/hooks/useETCEcosystemPrices";
 import { UpdateIndicator } from "@/components/portfolio/UpdateIndicator";
 import { TokenLogo } from "@/components/portfolio/TokenLogo";
+import { PriceChange } from "@/components/ui/PriceChange";
 import { CHAINS_BY_ID } from "@/lib/networks/registry";
 import { formatTokenBalance } from "@/lib/utils/format";
+import { formatUSDValue, calculateTokenUSDValue } from "@/lib/portfolio/portfolio-value";
 import { CollapsiblePanel } from "@/components/ui/CollapsiblePanel";
 
 /**
@@ -22,6 +25,7 @@ export function TokenBalancesDisplay() {
     const chainId = useChainId();
     const { data: tokenBalances, isLoading, error, dataUpdatedAt, isFetching } =
         useTokenBalances();
+    const { data: prices } = useETCEcosystemPrices();
 
     const address = useMemo(() => {
         const first = connections?.[0];
@@ -128,6 +132,23 @@ export function TokenBalancesDisplay() {
                 const formattedBalance = formatUnits(balance, token.decimals);
                 const displayBalance = formatTokenBalance(formattedBalance);
 
+                // Calculate USD value if price data available
+                const usdValue = prices
+                    ? calculateTokenUSDValue(balance, token.decimals, token.address, prices)
+                    : null;
+
+                // Get 24h price change for this token (USC or WETC)
+                const normalizedAddress = token.address.toLowerCase();
+                const uscAddress = "0xDE093684c796204224BC081f937aa059D903c52a".toLowerCase();
+                const wetcAddress = "0x1953cab0E5bFa6D4a9BaD6E05fD46C1CC6527a5a".toLowerCase();
+
+                let priceChange: number | undefined;
+                if (normalizedAddress === uscAddress) {
+                    priceChange = prices?.usc.change24h;
+                } else if (normalizedAddress === wetcAddress) {
+                    priceChange = prices?.wetc.change24h;
+                }
+
                 return (
                     <div
                         key={`${token.address}-${token.chainId}`}
@@ -154,7 +175,20 @@ export function TokenBalancesDisplay() {
                                 <div className="text-lg font-semibold text-white/90">
                                     {displayBalance}
                                 </div>
-                                <div className="text-xs text-white/55">{token.symbol}</div>
+                                <div className="flex items-baseline justify-end gap-1.5 text-xs text-white/55">
+                                    <span>{token.symbol}</span>
+                                    {usdValue !== null && usdValue > 0 && (
+                                        <>
+                                            <span className="text-white/30">•</span>
+                                            <span>{formatUSDValue(usdValue)}</span>
+                                        </>
+                                    )}
+                                </div>
+                                {priceChange !== undefined && (
+                                    <div className="mt-0.5 flex justify-end">
+                                        <PriceChange change24h={priceChange} size="sm" />
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>

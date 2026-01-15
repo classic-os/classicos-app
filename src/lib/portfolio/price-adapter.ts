@@ -13,6 +13,7 @@
 export type PriceData = {
     price: number; // USD price
     lastUpdated: number; // Unix timestamp
+    change24h?: number; // 24h price change percentage (e.g., 5.2 for +5.2%)
 };
 
 export type ETCPriceData = {
@@ -38,8 +39,9 @@ export type ETCPriceData = {
  */
 export async function fetchETCEcosystemPrices(): Promise<ETCPriceData> {
     // Use Next.js API route to avoid CORS issues
+    // Request 24h price change data in addition to current prices
     const url =
-        "/api/prices?ids=ethereum-classic,classic-usd,wrapped-etc-2&vs_currencies=usd&include_last_updated_at=true";
+        "/api/prices?ids=ethereum-classic,classic-usd,wrapped-etc-2&vs_currencies=usd&include_last_updated_at=true&include_24hr_change=true";
 
     const response = await fetch(url, {
         method: "GET",
@@ -83,14 +85,17 @@ export async function fetchETCEcosystemPrices(): Promise<ETCPriceData> {
         etc: {
             price: data["ethereum-classic"].usd,
             lastUpdated: data["ethereum-classic"].last_updated_at || now,
+            change24h: data["ethereum-classic"].usd_24h_change,
         },
         usc: {
             price: data["classic-usd"].usd,
             lastUpdated: data["classic-usd"].last_updated_at || now,
+            change24h: data["classic-usd"].usd_24h_change,
         },
         wetc: {
             price: data["wrapped-etc-2"].usd,
             lastUpdated: data["wrapped-etc-2"].last_updated_at || now,
+            change24h: data["wrapped-etc-2"].usd_24h_change,
         },
         lastUpdated: now,
     };
