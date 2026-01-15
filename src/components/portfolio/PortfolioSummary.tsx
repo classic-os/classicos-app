@@ -16,8 +16,11 @@ import {
 import { CollapsiblePanel } from "@/components/ui/CollapsiblePanel";
 import { PriceChange } from "@/components/ui/PriceChange";
 import { CopyButton } from "@/components/ui/CopyButton";
+import { RefreshButton } from "@/components/ui/RefreshButton";
 import { useTokenBalances } from "@/hooks/useTokenBalances";
 import { useETCswapV2Positions } from "@/hooks/useETCswapV2Positions";
+import { usePriceHistory } from "@/hooks/usePriceHistory";
+import { useNativeBalance } from "@/hooks/useNativeBalance";
 
 /**
  * Portfolio Summary Component
@@ -30,13 +33,26 @@ import { useETCswapV2Positions } from "@/hooks/useETCswapV2Positions";
 export function PortfolioSummary() {
     const chainId = useChainId();
     const summary = usePortfolioSummary();
-    const { data: prices, isLoading: isPriceLoading } = useETCEcosystemPrices();
-    const { data: tokenBalances } = useTokenBalances();
-    const { data: positions } = useETCswapV2Positions();
+    const { data: prices, isLoading: isPriceLoading, refetch: refetchPrices } = useETCEcosystemPrices();
+    const { data: tokenBalances, refetch: refetchTokens } = useTokenBalances();
+    const { data: positions, refetch: refetchPositions } = useETCswapV2Positions();
+    const { refetch: refetchPriceHistory } = usePriceHistory("ethereum-classic");
+    const { refetch: refetchBalance } = useNativeBalance();
     const ecosystem = getEcosystem(chainId);
     const chain = CHAINS_BY_ID[chainId];
     const nativeSymbol = chain?.nativeCurrency?.symbol || "ETH";
     const isTestnet = ecosystem.kind === "testnet";
+
+    // Refresh all portfolio data
+    const handleRefresh = async () => {
+        await Promise.all([
+            refetchPrices(),
+            refetchTokens(),
+            refetchPositions(),
+            refetchPriceHistory(),
+            refetchBalance(),
+        ]);
+    };
 
     // State 1: Disconnected
     if (!summary.isConnected) {
@@ -170,8 +186,11 @@ export function PortfolioSummary() {
             {/* Total Portfolio Value Card */}
             {totalPortfolioValue > 0 && (
                 <div className="mb-4 rounded-lg border border-blue-500/30 bg-blue-500/10 p-4">
-                    <div className="text-xs font-medium uppercase tracking-wide text-white/70">
-                        Total Portfolio Value
+                    <div className="flex items-center justify-between">
+                        <div className="text-xs font-medium uppercase tracking-wide text-white/70">
+                            Total Portfolio Value
+                        </div>
+                        <RefreshButton onRefresh={handleRefresh} size="sm" variant="outline" showLabel={false} />
                     </div>
                     <div className="mt-2 flex items-baseline gap-2">
                         {isPriceLoading ? (
