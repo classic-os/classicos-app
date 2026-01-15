@@ -548,10 +548,12 @@ function V3PositionCard({ position, chainId, prices, derivedPrices, currency, ex
     // Calculate position value
     const positionValueUSD = calculateV3PositionValue(amount0, amount1, token0Price, token1Price);
 
-    // Price range bounds
-    const priceLower = tickToPrice(tickLower);
-    const priceUpper = tickToPrice(tickUpper);
-    const priceCurrent = tickToPrice(currentTick);
+    // Price range bounds (adjusted for token decimals)
+    // tickToPrice() returns price in raw units, must adjust for decimal difference
+    const decimalAdjustment = Math.pow(10, token0.decimals - token1.decimals);
+    const priceLower = tickToPrice(tickLower) * decimalAdjustment;
+    const priceUpper = tickToPrice(tickUpper) * decimalAdjustment;
+    const priceCurrent = tickToPrice(currentTick) * decimalAdjustment;
 
     // Detect full range position (tick range approximately -887272 to 887272)
     // Using a threshold of ±800000 to catch "full range" positions

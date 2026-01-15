@@ -146,6 +146,19 @@ function calculateV2SpotPrices(
  * V3 uses concentrated liquidity with tick-based pricing.
  * Current tick determines the spot price.
  *
+ * Important: tickToPrice() returns price in terms of token decimal units.
+ * For tokens with different decimals, we must adjust by the decimal difference.
+ *
+ * Formula:
+ * - Raw price = 1.0001^tick (price of token1 in terms of token0, unadjusted)
+ * - Adjusted price = rawPrice * 10^(decimals0 - decimals1)
+ *
+ * Example: WETC/USC pool where WETC=token0 (18 decimals), USC=token1 (6 decimals)
+ * - If tick gives rawPrice = 1.0 (1 WETC = 1 USC in raw units)
+ * - Adjusted = 1.0 * 10^(18-6) = 1.0 * 10^12
+ * - Meaning: 1 WETC (10^18 wei) = 10^12 USC (10^18 smallest units)
+ * - In human terms: 1 WETC = 1,000,000 USC
+ *
  * @param position - V3 position
  * @param prices - CoinGecko prices
  * @returns Map of token address → DEX spot price in USD
@@ -157,17 +170,41 @@ function calculateV3SpotPrices(
     const { token0, token1, currentTick } = position;
     const spotPrices = new Map<string, { price: number; source: string }>();
 
-    // Get spot price from current tick
-    // This is price of token1 in terms of token0
-    const priceToken1PerToken0 = tickToPrice(currentTick);
+    // Get raw price from tick (unadjusted for decimals)
+    const rawPriceToken1PerToken0 = tickToPrice(currentTick);
+
+    // Adjust for decimal difference between token0 and token1
+    // tickToPrice() returns: (smallest_unit_token1) / (smallest_unit_token0)
+    // To convert to human-readable: (whole_token1) / (whole_token0)
+    // Formula: human_price = raw_price * 10^(decimals0 - decimals1)
+    const decimalAdjustment = Math.pow(10, token0.decimals - token1.decimals);
+    const priceToken1PerToken0 = rawPriceToken1PerToken0 * decimalAdjustment;
+
+    console.log(
+        `[V3 Arbitrage] ${token0.symbol}/${token1.symbol} pool:`,
+        `tick=${currentTick},`,
+        `rawPrice=${rawPriceToken1PerToken0.toExponential(4)},`,
+        `decimals=(${token0.decimals}, ${token1.decimals}),`,
+        `adjustment=10^${token0.decimals - token1.decimals}=${decimalAdjustment.toExponential(2)},`,
+        `adjustedPrice=${priceToken1PerToken0.toFixed(6)} ${token1.symbol}/${token0.symbol}`
+    );
 
     // Try to calculate spot price using known FMV prices
     const fmv0 = getFMVPrice(token0.address, prices);
     const fmv1 = getFMVPrice(token1.address, prices);
 
     // If token0 has FMV, derive token1 spot price
+    // priceToken1PerToken0 = how many token1 per 1 token0
+    // fmv0 = USD price of 1 token0
+    // Therefore: token1 USD price = fmv0 / priceToken1PerToken0
     if (fmv0 !== null && priceToken1PerToken0 > 0) {
-        const token1SpotPrice = fmv0 * priceToken1PerToken0;
+        const token1SpotPrice = fmv0 / priceToken1PerToken0;
+        console.log(
+            `[V3 Arbitrage] Deriving ${token1.symbol} USD price:`,
+            `fmv0(${token0.symbol})=$${fmv0.toFixed(2)} /`,
+            `price(${token1.symbol}/${token0.symbol})=${priceToken1PerToken0.toFixed(6)} =`,
+            `$${token1SpotPrice.toFixed(2)}`
+        );
         spotPrices.set(token1.address.toLowerCase(), {
             price: token1SpotPrice,
             source: `ETCswap V3 ${token0.symbol}/${token1.symbol}`,
@@ -175,8 +212,17 @@ function calculateV3SpotPrices(
     }
 
     // If token1 has FMV, derive token0 spot price
+    // priceToken1PerToken0 = how many token1 per 1 token0
+    // fmv1 = USD price of 1 token1
+    // Therefore: token0 USD price = fmv1 * priceToken1PerToken0
     if (fmv1 !== null && priceToken1PerToken0 > 0) {
-        const token0SpotPrice = fmv1 / priceToken1PerToken0;
+        const token0SpotPrice = fmv1 * priceToken1PerToken0;
+        console.log(
+            `[V3 Arbitrage] Deriving ${token0.symbol} USD price:`,
+            `fmv1(${token1.symbol})=$${fmv1.toFixed(2)} *`,
+            `price(${token1.symbol}/${token0.symbol})=${priceToken1PerToken0.toFixed(6)} =`,
+            `$${token0SpotPrice.toFixed(2)}`
+        );
         spotPrices.set(token0.address.toLowerCase(), {
             price: token0SpotPrice,
             source: `ETCswap V3 ${token0.symbol}/${token1.symbol}`,

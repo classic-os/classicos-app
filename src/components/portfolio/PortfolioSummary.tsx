@@ -167,10 +167,14 @@ export function PortfolioSummary() {
           )
         : 0;
 
-    // Calculate USD value for LP positions (V2 only for now - V3 math needs fixing)
-    // TODO: Include V3 positions once V3 math is corrected
-    const positionsUSDValue = prices && v2Positions && v2Positions.length > 0
-        ? calculatePositionsUSDValue(v2Positions, prices, derivedPrices)
+    // Calculate USD value for LP positions (both V2 and V3)
+    // Combine V2 and V3 positions into a single array
+    const allPositions = [
+        ...(v2Positions || []),
+        ...(v3Positions || []),
+    ];
+    const positionsUSDValue = prices && allPositions.length > 0
+        ? calculatePositionsUSDValue(allPositions, prices, derivedPrices)
         : 0;
 
     // Total portfolio value across all asset types
