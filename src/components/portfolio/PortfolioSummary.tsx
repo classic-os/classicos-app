@@ -7,8 +7,15 @@ import { useETCEcosystemPrices } from "@/hooks/useETCEcosystemPrices";
 import { getEcosystem } from "@/lib/ecosystems/registry";
 import { CHAINS_BY_ID } from "@/lib/networks/registry";
 import { formatTokenBalance, formatNumber } from "@/lib/utils/format";
-import { calculateNativeUSDValue, formatUSDValue } from "@/lib/portfolio/portfolio-value";
+import {
+    calculateNativeUSDValue,
+    calculateTokensUSDValue,
+    calculatePositionsUSDValue,
+    formatUSDValue,
+} from "@/lib/portfolio/portfolio-value";
 import { CollapsiblePanel } from "@/components/ui/CollapsiblePanel";
+import { useTokenBalances } from "@/hooks/useTokenBalances";
+import { useETCswapV2Positions } from "@/hooks/useETCswapV2Positions";
 
 /**
  * Portfolio Summary Component
@@ -22,6 +29,8 @@ export function PortfolioSummary() {
     const chainId = useChainId();
     const summary = usePortfolioSummary();
     const { data: prices, isLoading: isPriceLoading } = useETCEcosystemPrices();
+    const { data: tokenBalances } = useTokenBalances();
+    const { data: positions } = useETCswapV2Positions();
     const ecosystem = getEcosystem(chainId);
     const chain = CHAINS_BY_ID[chainId];
     const nativeSymbol = chain?.nativeCurrency?.symbol || "ETH";
@@ -113,9 +122,25 @@ export function PortfolioSummary() {
         ? calculateNativeUSDValue(summary.native.balance, prices, isTestnet)
         : 0;
 
-    // For Phase 1, total value = native balance only
-    // TODO Phase 2: Add token values and LP position values
-    const totalPortfolioValue = nativeUSDValue;
+    // Calculate USD value for tokens (USC, WETC have known prices)
+    const tokensUSDValue = prices && tokenBalances
+        ? calculateTokensUSDValue(
+              tokenBalances.map((tb) => ({
+                  tokenAddress: tb.token.address,
+                  balance: tb.balance,
+                  decimals: tb.token.decimals,
+              })),
+              prices
+          )
+        : 0;
+
+    // Calculate USD value for LP positions
+    const positionsUSDValue = prices && positions
+        ? calculatePositionsUSDValue(positions, prices)
+        : 0;
+
+    // Total portfolio value across all asset types
+    const totalPortfolioValue = nativeUSDValue + tokensUSDValue + positionsUSDValue;
 
     const assetCountLabel = `${summary.totalAssets} ${summary.totalAssets === 1 ? "Asset" : "Assets"}`;
 

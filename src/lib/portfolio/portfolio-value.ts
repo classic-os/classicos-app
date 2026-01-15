@@ -134,6 +134,92 @@ export function calculateLPPositionUSDValue(
 }
 
 /**
+ * Calculate total USD value for an array of token balances
+ *
+ * @param tokenBalances - Array of token balances with address, amount, decimals
+ * @param prices - ETC ecosystem prices
+ * @returns Total USD value of all tokens
+ */
+export function calculateTokensUSDValue(
+    tokenBalances: Array<{
+        tokenAddress: Address;
+        balance: bigint;
+        decimals: number;
+    }>,
+    prices: ETCPriceData
+): number {
+    let total = 0;
+
+    for (const token of tokenBalances) {
+        const value = calculateTokenUSDValue(
+            token.balance,
+            token.decimals,
+            token.tokenAddress,
+            prices
+        );
+
+        if (value !== null) {
+            total += value;
+        }
+    }
+
+    return total;
+}
+
+/**
+ * Calculate total USD value for an array of LP positions
+ *
+ * @param positions - Array of LP positions with reserve data
+ * @param lpTotalSupplies - Map of LP token address to total supply
+ * @param lpBalances - Map of LP token address to user balance
+ * @param prices - ETC ecosystem prices
+ * @returns Total USD value of all LP positions
+ */
+export function calculatePositionsUSDValue(
+    positions: ReadonlyArray<{
+        readonly lpTokenAddress: Address;
+        readonly lpBalance: bigint;
+        readonly lpTotalSupply: bigint;
+        readonly token0: {
+            readonly address: Address;
+            readonly decimals: number;
+            readonly reserve: bigint;
+        };
+        readonly token1: {
+            readonly address: Address;
+            readonly decimals: number;
+            readonly reserve: bigint;
+        };
+    }>,
+    prices: ETCPriceData
+): number {
+    let total = 0;
+
+    for (const position of positions) {
+        // Calculate user's share of reserves
+        const shareRatio = Number(position.lpBalance) / Number(position.lpTotalSupply);
+        const userReserve0 = BigInt(Math.floor(Number(position.token0.reserve) * shareRatio));
+        const userReserve1 = BigInt(Math.floor(Number(position.token1.reserve) * shareRatio));
+
+        const value = calculateLPPositionUSDValue(
+            position.token0.address,
+            position.token0.decimals,
+            userReserve0,
+            position.token1.address,
+            position.token1.decimals,
+            userReserve1,
+            prices
+        );
+
+        if (value !== null) {
+            total += value;
+        }
+    }
+
+    return total;
+}
+
+/**
  * Format USD value with appropriate precision
  *
  * @param value - USD value
