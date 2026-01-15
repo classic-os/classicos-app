@@ -458,10 +458,7 @@ Build: update Next.js to 16.1.1
 ```
 
 **Co-Authorship:**
-All commits include:
-```
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
-```
+Do NOT add Co-Authored-By lines to commits. Standard git author attribution is sufficient.
 
 ## Common Pitfalls
 
