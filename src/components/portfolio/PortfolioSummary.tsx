@@ -65,11 +65,15 @@ export function PortfolioSummary() {
         return (
             <div className="rounded-xl border border-white/10 bg-black/20 p-6">
                 <div className="text-center">
-                    <div className="text-sm font-medium text-white/70">
-                        No assets found
+                    <div className="mb-2 text-sm font-medium text-white/70">
+                        No assets detected
                     </div>
-                    <div className="mt-1 text-xs text-white/50">
-                        Your portfolio is empty. Add funds to get started.
+                    <div className="text-xs text-white/50">
+                        This wallet doesn&apos;t have any {nativeSymbol}, tokens, or liquidity positions on{" "}
+                        {chain?.name || `Chain ${chainId}`}.
+                    </div>
+                    <div className="mt-3 text-xs text-white/45">
+                        To get started, transfer {nativeSymbol} to this wallet or acquire tokens through a swap.
                     </div>
                 </div>
             </div>

@@ -67,9 +67,12 @@ export function TokenBalancesDisplay() {
     if (!tokenBalances || tokenBalances.length === 0) {
         return (
             <div className="rounded-xl border border-white/10 bg-black/20 p-6 text-center">
-                <div className="text-sm text-white/55">No ERC20 tokens found</div>
+                <div className="text-sm text-white/55">No ERC20 tokens detected</div>
                 <div className="mt-1 text-xs text-white/40">
-                    This wallet has no token balances on {chain?.name || `Chain ${chainId}`}
+                    This wallet doesn&apos;t hold any ERC20 token balances on {chain?.name || `Chain ${chainId}`}.
+                </div>
+                <div className="mt-2 text-xs text-white/35">
+                    Tokens acquired through swaps or transfers will appear here automatically.
                 </div>
             </div>
         );

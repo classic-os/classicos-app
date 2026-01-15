@@ -71,7 +71,7 @@ export function NativeBalanceDisplay() {
                     </div>
                     {isZero && (
                         <div className="mt-1 text-xs text-white/45">
-                            No {nativeSymbol} in this wallet
+                            This wallet has no {nativeSymbol}. Transfer {nativeSymbol} to pay for gas fees and transactions.
                         </div>
                     )}
                     {/* Update indicator */}

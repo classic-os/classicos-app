@@ -23,14 +23,17 @@ export type RpcClient = {
 
 /**
  * Minimal ERC20 ABI for balanceOf function
+ *
+ * Note: Uses unnamed parameters to match auto-generated getters from public mappings
+ * (like WETC9 which uses `mapping (address => uint) public balanceOf`)
  */
 const ERC20_BALANCE_ABI = [
     {
         type: "function",
         name: "balanceOf",
         stateMutability: "view",
-        inputs: [{ name: "_owner", type: "address" }],
-        outputs: [{ name: "balance", type: "uint256" }],
+        inputs: [{ type: "address" }],
+        outputs: [{ type: "uint256" }],
     },
 ] as const satisfies Abi;
 
@@ -40,7 +43,10 @@ const ERC20_BALANCE_ABI = [
  * Uses structural typing to avoid coupling to viem's PublicClient.
  * Fetches token balances with individual readContract calls for maximum compatibility.
  *
- * Note: Falls back from multicall due to multicall3 compatibility issues on some chains.
+ * IMPORTANT: Multicall batching is explicitly disabled because:
+ * - ETC Mainnet has an 8M gas limit (vs 30M on Ethereum)
+ * - Batching 12+ token balance calls exceeds this limit
+ * - Individual calls ensure compatibility across all EVM chains
  *
  * @param client - RPC client with readContract support
  * @param address - Wallet address to check balances for
@@ -71,7 +77,7 @@ export async function getERC20Balances(
             tokens: tokens.map((t) => `${t.symbol} (${t.address})`),
         });
 
-        // Fetch balances individually (fallback from multicall due to compatibility)
+        // Fetch balances individually with explicit multicall disable
         const balancePromises = tokens.map(async (token) => {
             try {
                 const balance = await client.readContract({
@@ -79,6 +85,8 @@ export async function getERC20Balances(
                     abi: ERC20_BALANCE_ABI,
                     functionName: "balanceOf",
                     args: [address],
+                    // @ts-expect-error - multicall option exists but not in types
+                    multicall: false, // Explicitly disable multicall batching
                 });
 
                 return {
@@ -87,7 +95,15 @@ export async function getERC20Balances(
                     success: true,
                 };
             } catch (error) {
-                console.warn(`[ERC20 Balances] Failed to get balance for ${token.symbol}:`, error);
+                // Use debug level logging for expected failures (zero balances, unsupported tokens, etc.)
+                // These are not errors - just informational for development
+                if (process.env.NODE_ENV === "development") {
+                    console.debug(
+                        `[ERC20 Balances] Skipping ${token.symbol} at ${token.address} on chain ${token.chainId}: ${
+                            error instanceof Error ? error.message : "Unknown error"
+                        }`
+                    );
+                }
                 return {
                     token,
                     balance: BigInt(0),

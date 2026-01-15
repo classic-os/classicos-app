@@ -67,7 +67,7 @@ export function PositionsPanel() {
             <Panel title="Positions" description="DeFi protocol positions">
                 <EmptyState
                     title="No active positions"
-                    body="Liquidity positions from ETCswap and other protocols will appear here."
+                    body="You don't have any liquidity provider positions on ETCswap V2 or other supported protocols. LP positions allow you to earn trading fees by providing liquidity to token pairs."
                 />
             </Panel>
         );
