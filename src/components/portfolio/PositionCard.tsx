@@ -16,7 +16,7 @@ type PositionCardProps = {
  * Follows 2025 DeFi Saver pattern with protocol badge and pool metrics.
  */
 export function PositionCard({ position, chainId }: PositionCardProps) {
-    const { token0, token1, lpBalance, poolShare } = position;
+    const { token0, token1, lpBalance, lpTotalSupply, poolShare } = position;
 
     // Format reserves
     const reserve0Formatted = formatUnits(token0.reserve, token0.decimals);
@@ -24,6 +24,11 @@ export function PositionCard({ position, chainId }: PositionCardProps) {
 
     // Format LP balance
     const lpBalanceFormatted = formatUnits(lpBalance, 18); // LP tokens typically 18 decimals
+
+    // Calculate user's share of reserves
+    const shareRatio = Number(lpBalance) / Number(lpTotalSupply);
+    const userReserve0 = Number(reserve0Formatted) * shareRatio;
+    const userReserve1 = Number(reserve1Formatted) * shareRatio;
 
     // Pool name
     const poolName = `${token0.symbol}/${token1.symbol}`;
@@ -89,16 +94,35 @@ export function PositionCard({ position, chainId }: PositionCardProps) {
                 </div>
             </div>
 
-            {/* Token Reserves */}
+            {/* User's Share of Reserves (Position Value) */}
+            <div className="mb-2 rounded-lg border border-blue-500/20 bg-blue-500/5 p-2.5">
+                <div className="mb-1 text-xs text-white/70">Your Position Value</div>
+                <div className="grid grid-cols-2 gap-2">
+                    <div>
+                        <div className="text-xs text-white/55">{token0.symbol}</div>
+                        <div className="mt-0.5 font-mono text-sm text-white/90">
+                            {formatNumber(userReserve0, 6, 2)}
+                        </div>
+                    </div>
+                    <div>
+                        <div className="text-xs text-white/55">{token1.symbol}</div>
+                        <div className="mt-0.5 font-mono text-sm text-white/90">
+                            {formatNumber(userReserve1, 6, 2)}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Total Pool Reserves */}
             <div className="grid grid-cols-2 gap-2">
                 <div className="rounded-lg bg-white/5 p-2.5">
-                    <div className="text-xs text-white/55">{token0.symbol}</div>
+                    <div className="text-xs text-white/55">Pool {token0.symbol}</div>
                     <div className="mt-0.5 font-mono text-sm text-white/90">
                         {formatTokenBalance(reserve0Formatted)}
                     </div>
                 </div>
                 <div className="rounded-lg bg-white/5 p-2.5">
-                    <div className="text-xs text-white/55">{token1.symbol}</div>
+                    <div className="text-xs text-white/55">Pool {token1.symbol}</div>
                     <div className="mt-0.5 font-mono text-sm text-white/90">
                         {formatTokenBalance(reserve1Formatted)}
                     </div>
