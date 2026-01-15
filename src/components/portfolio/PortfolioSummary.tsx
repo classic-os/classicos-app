@@ -3,10 +3,8 @@
 import { formatEther } from "viem";
 import { useChainId } from "wagmi";
 import { usePortfolioSummary } from "@/hooks/usePortfolioSummary";
-import { useETCPrice } from "@/hooks/useETCPrice";
 import { CHAINS_BY_ID } from "@/lib/networks/registry";
-import { formatTokenBalance, formatNumber } from "@/lib/utils/format";
-import { CollapsiblePanel } from "@/components/ui/CollapsiblePanel";
+import { formatTokenBalance } from "@/lib/utils/format";
 
 /**
  * Portfolio Summary Component
@@ -19,70 +17,54 @@ import { CollapsiblePanel } from "@/components/ui/CollapsiblePanel";
 export function PortfolioSummary() {
     const chainId = useChainId();
     const summary = usePortfolioSummary();
-    const { data: priceData, isLoading: isPriceLoading } = useETCPrice();
     const chain = CHAINS_BY_ID[chainId];
     const nativeSymbol = chain?.nativeCurrency?.symbol || "ETH";
 
     // State 1: Disconnected
     if (!summary.isConnected) {
         return (
-            <CollapsiblePanel
-                title="Portfolio Summary"
-                description="Asset counts and key metrics"
-                defaultExpanded={true}
-            >
+            <div className="rounded-xl border border-white/10 bg-black/20 p-6">
                 <div className="text-center text-sm text-white/55">
                     Connect wallet to view portfolio summary
                 </div>
-            </CollapsiblePanel>
+            </div>
         );
     }
 
     // State 2: Loading
     if (summary.isLoading) {
         return (
-            <CollapsiblePanel
-                title="Portfolio Summary"
-                description="Asset counts and key metrics"
-                defaultExpanded={true}
-            >
+            <div className="rounded-xl border border-white/10 bg-black/20 p-6">
+                <div className="mb-4">
+                    <div className="h-6 w-32 animate-pulse rounded bg-white/5" />
+                </div>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                     <div className="h-20 animate-pulse rounded-lg bg-white/5" />
                     <div className="h-20 animate-pulse rounded-lg bg-white/5" />
                     <div className="h-20 animate-pulse rounded-lg bg-white/5" />
                 </div>
-            </CollapsiblePanel>
+            </div>
         );
     }
 
     // State 3: Error
     if (summary.hasError) {
         return (
-            <CollapsiblePanel
-                title="Portfolio Summary"
-                description="Asset counts and key metrics"
-                defaultExpanded={true}
-            >
-                <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4">
-                    <div className="text-sm font-medium text-red-400">
-                        Failed to load portfolio summary
-                    </div>
-                    <div className="mt-1 text-xs text-red-300/70">
-                        Some data sources encountered errors
-                    </div>
+            <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-6">
+                <div className="text-sm font-medium text-red-400">
+                    Failed to load portfolio summary
                 </div>
-            </CollapsiblePanel>
+                <div className="mt-1 text-xs text-red-300/70">
+                    Some data sources encountered errors
+                </div>
+            </div>
         );
     }
 
     // State 4: Empty portfolio
     if (summary.isEmpty) {
         return (
-            <CollapsiblePanel
-                title="Portfolio Summary"
-                description="Asset counts and key metrics"
-                defaultExpanded={true}
-            >
+            <div className="rounded-xl border border-white/10 bg-black/20 p-6">
                 <div className="text-center">
                     <div className="mb-2 text-sm font-medium text-white/70">
                         No assets detected
@@ -95,7 +77,7 @@ export function PortfolioSummary() {
                         To get started, transfer {nativeSymbol} to this wallet or acquire tokens through a swap.
                     </div>
                 </div>
-            </CollapsiblePanel>
+            </div>
         );
     }
 
@@ -104,21 +86,18 @@ export function PortfolioSummary() {
         ? formatTokenBalance(formatEther(summary.native.balance))
         : "0";
 
-    // Calculate USD value if we have both balance and price
-    const nativeBalanceFloat = summary.native.balance
-        ? parseFloat(formatEther(summary.native.balance))
-        : 0;
-    const usdValue =
-        priceData && nativeBalanceFloat > 0 ? nativeBalanceFloat * priceData.price : null;
-
-    const assetCountLabel = `${summary.totalAssets} ${summary.totalAssets === 1 ? "Asset" : "Assets"}`;
-
     return (
-        <CollapsiblePanel
-            title="Portfolio Summary"
-            description={assetCountLabel}
-            defaultExpanded={true}
-        >
+        <div className="rounded-xl border border-white/10 bg-black/20 p-6">
+            {/* Header */}
+            <div className="mb-4 flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-white/90">
+                    Portfolio Summary
+                </h3>
+                <div className="rounded-lg bg-white/5 px-3 py-1 text-sm font-medium text-white/70">
+                    {summary.totalAssets} {summary.totalAssets === 1 ? "Asset" : "Assets"}
+                </div>
+            </div>
+
             {/* Metric Cards */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 {/* Native Balance Card */}
@@ -138,18 +117,6 @@ export function PortfolioSummary() {
                             <div className="text-sm text-white/50">No balance</div>
                         )}
                     </div>
-                    {/* USD Value */}
-                    {summary.native.hasBalance && (
-                        <div className="mt-2 text-sm text-white/50">
-                            {isPriceLoading && <span>Loading price...</span>}
-                            {!isPriceLoading && usdValue !== null && (
-                                <span>${formatNumber(usdValue, 2, 2)} USD</span>
-                            )}
-                            {!isPriceLoading && priceData && usdValue === null && (
-                                <span>Price unavailable</span>
-                            )}
-                        </div>
-                    )}
                 </div>
 
                 {/* Tokens Card */}
@@ -188,6 +155,6 @@ export function PortfolioSummary() {
                     )}
                 </div>
             </div>
-        </CollapsiblePanel>
+        </div>
     );
 }

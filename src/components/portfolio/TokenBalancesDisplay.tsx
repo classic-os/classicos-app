@@ -8,7 +8,6 @@ import { UpdateIndicator } from "@/components/portfolio/UpdateIndicator";
 import { TokenLogo } from "@/components/portfolio/TokenLogo";
 import { CHAINS_BY_ID } from "@/lib/networks/registry";
 import { formatTokenBalance } from "@/lib/utils/format";
-import { CollapsiblePanel } from "@/components/ui/CollapsiblePanel";
 
 /**
  * Token Balances Display Component
@@ -32,98 +31,66 @@ export function TokenBalancesDisplay() {
     const isConnected = Boolean(address);
     const chain = CHAINS_BY_ID[chainId];
 
-    const tokenCount = tokenBalances?.length || 0;
-    const tokenCountLabel = tokenCount > 0 ? `${tokenCount} ${tokenCount === 1 ? "Token" : "Tokens"}` : "ERC20 Tokens";
-
     // State 1: Disconnected
     if (!isConnected || !address) {
         return (
-            <CollapsiblePanel
-                title="Token Balances"
-                description={tokenCountLabel}
-                defaultExpanded={true}
-            >
-                <div className="text-sm text-white/55">
-                    Connect wallet to view token balances
-                </div>
-            </CollapsiblePanel>
+            <div className="text-sm text-white/55">
+                Connect wallet to view token balances
+            </div>
         );
     }
 
     // State 2: Loading
     if (isLoading) {
         return (
-            <CollapsiblePanel
-                title="Token Balances"
-                description={tokenCountLabel}
-                defaultExpanded={true}
-            >
-                <div className="space-y-3">
-                    <div className="h-16 w-full animate-pulse rounded-lg bg-white/5" />
-                    <div className="h-16 w-full animate-pulse rounded-lg bg-white/5" />
-                    <div className="h-16 w-full animate-pulse rounded-lg bg-white/5" />
-                </div>
-            </CollapsiblePanel>
+            <div className="space-y-3">
+                <div className="h-16 w-full animate-pulse rounded-lg bg-white/5" />
+                <div className="h-16 w-full animate-pulse rounded-lg bg-white/5" />
+                <div className="h-16 w-full animate-pulse rounded-lg bg-white/5" />
+            </div>
         );
     }
 
     // State 3: Error
     if (error) {
         return (
-            <CollapsiblePanel
-                title="Token Balances"
-                description={tokenCountLabel}
-                defaultExpanded={true}
-            >
-                <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4">
-                    <div className="text-sm font-medium text-red-400">
-                        Failed to load token balances
-                    </div>
-                    <div className="mt-1 text-xs text-red-300/70">
-                        {error instanceof Error ? error.message : "Unknown error occurred"}
-                    </div>
+            <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4">
+                <div className="text-sm font-medium text-red-400">
+                    Failed to load token balances
                 </div>
-            </CollapsiblePanel>
+                <div className="mt-1 text-xs text-red-300/70">
+                    {error instanceof Error ? error.message : "Unknown error occurred"}
+                </div>
+            </div>
         );
     }
 
     // State 4: Empty (no tokens)
     if (!tokenBalances || tokenBalances.length === 0) {
         return (
-            <CollapsiblePanel
-                title="Token Balances"
-                description={tokenCountLabel}
-                defaultExpanded={true}
-            >
-                <div className="text-center">
-                    <div className="text-sm text-white/55">No ERC20 tokens detected</div>
-                    <div className="mt-1 text-xs text-white/40">
-                        This wallet doesn&apos;t hold any ERC20 token balances on {chain?.name || `Chain ${chainId}`}.
-                    </div>
-                    <div className="mt-2 text-xs text-white/35">
-                        Tokens acquired through swaps or transfers will appear here automatically.
-                    </div>
+            <div className="rounded-xl border border-white/10 bg-black/20 p-6 text-center">
+                <div className="text-sm text-white/55">No ERC20 tokens detected</div>
+                <div className="mt-1 text-xs text-white/40">
+                    This wallet doesn&apos;t hold any ERC20 token balances on {chain?.name || `Chain ${chainId}`}.
                 </div>
-            </CollapsiblePanel>
+                <div className="mt-2 text-xs text-white/35">
+                    Tokens acquired through swaps or transfers will appear here automatically.
+                </div>
+            </div>
         );
     }
 
     // State 5: Data (tokens with balances)
     return (
-        <CollapsiblePanel
-            title="Token Balances"
-            description={tokenCountLabel}
-            defaultExpanded={true}
-        >
-            <div className="space-y-3">
-                {/* Update indicator at top of token list */}
-                {dataUpdatedAt && (
-                    <div className="px-1">
-                        <UpdateIndicator dataUpdatedAt={dataUpdatedAt} isFetching={isFetching} />
-                    </div>
-                )}
+        <div className="space-y-3">
+            {/* Update indicator at top of token list */}
+            {dataUpdatedAt && (
+                <div className="px-1">
+                    <UpdateIndicator dataUpdatedAt={dataUpdatedAt} isFetching={isFetching} />
+                </div>
+            )}
 
-                {tokenBalances.map((tokenBalance) => {
+            {tokenBalances.map((tokenBalance) => {
                 const { token, balance } = tokenBalance;
                 const formattedBalance = formatUnits(balance, token.decimals);
                 const displayBalance = formatTokenBalance(formattedBalance);
@@ -159,8 +126,7 @@ export function TokenBalancesDisplay() {
                         </div>
                     </div>
                 );
-                })}
-            </div>
-        </CollapsiblePanel>
+            })}
+        </div>
     );
 }
