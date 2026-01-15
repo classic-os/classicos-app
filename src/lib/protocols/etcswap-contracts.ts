@@ -44,7 +44,7 @@ export const ETCSWAP_V2_MORDOR: ETCswapV2Contracts = {
 };
 
 // ============================================================================
-// ETCswap V3 Contracts (Uniswap V3 Fork - Mainnet Only)
+// ETCswap V3 Contracts (Uniswap V3 Fork - Same addresses on both networks)
 // ============================================================================
 
 export type ETCswapV3Contracts = {
@@ -71,7 +71,8 @@ export type ETCswapV3Contracts = {
     staker: Address;
 };
 
-export const ETCSWAP_V3_MAINNET: ETCswapV3Contracts = {
+// V3 contracts use same addresses on both ETC Mainnet (61) and Mordor Testnet (63)
+export const ETCSWAP_V3_CONTRACTS: ETCswapV3Contracts = {
     // Core
     factory: "0x2624E907BcC04f93C8f29d7C7149a8700Ceb8cDC",
     universalRouter: "0x9b676E761040D60C6939dcf5f582c2A4B51025F1",
@@ -123,15 +124,16 @@ export function getETCswapV2Contracts(chainId: number): ETCswapV2Contracts | nul
 /**
  * Get ETCswap V3 contracts for a given chain ID.
  *
- * @param chainId - Chain ID (only 61 for mainnet supported)
+ * @param chainId - Chain ID (61 for mainnet, 63 for Mordor)
  * @returns V3 contract addresses or null if not supported
  */
 export function getETCswapV3Contracts(chainId: number): ETCswapV3Contracts | null {
     switch (chainId) {
         case ETC_MAINNET_CHAIN_ID:
-            return ETCSWAP_V3_MAINNET;
+        case MORDOR_TESTNET_CHAIN_ID:
+            return ETCSWAP_V3_CONTRACTS; // Same addresses on both networks
         default:
-            return null; // V3 only on mainnet
+            return null;
     }
 }
 
@@ -146,7 +148,7 @@ export function isETCswapV2Available(chainId: number): boolean {
  * Check if ETCswap V3 is available on the given chain.
  */
 export function isETCswapV3Available(chainId: number): boolean {
-    return chainId === ETC_MAINNET_CHAIN_ID;
+    return chainId === ETC_MAINNET_CHAIN_ID || chainId === MORDOR_TESTNET_CHAIN_ID;
 }
 
 // ============================================================================

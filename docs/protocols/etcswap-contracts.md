@@ -74,7 +74,9 @@ Official contract addresses and configuration for ETCswap V2 and V3 protocols on
 
 ## ETCswap V3 (Uniswap V3 Fork)
 
-### Ethereum Classic Mainnet Only
+### Both Networks (Same Addresses)
+
+**Note:** ETCswap V3 uses the same contract addresses on both ETC Mainnet (61) and Mordor Testnet (63). The V3 UI includes testnet support built-in.
 
 **Core Contracts:**
 - **Factory:** [0x2624E907BcC04f93C8f29d7C7149a8700Ceb8cDC](https://etc.blockscout.com/address/0x2624E907BcC04f93C8f29d7C7149a8700Ceb8cDC)
@@ -133,6 +135,7 @@ Official contract addresses and configuration for ETCswap V2 and V3 protocols on
 - Use `balanceOf(address)` to get position count
 - Use `tokenOfOwnerByIndex(address, index)` to enumerate token IDs
 - Call `positions(tokenId)` to get position details
+- Works on both ETC Mainnet (61) and Mordor Testnet (63) with same contract addresses
 
 **Multicall Optimization:**
 - ETCswap V2 has custom Multicall contract (different from Multicall V3)
@@ -165,8 +168,8 @@ Official contract addresses and configuration for ETCswap V2 and V3 protocols on
 | V2 Router (Mordor) | - | `0x582A...07C` | Testnet only |
 | V2 Multicall (Mainnet) | `0xB945...8BA1` | - | Custom implementation |
 | V2 Multicall (Mordor) | - | `0x41Fa...5C4B` | Custom implementation |
-| V3 Factory | `0x2624...cDC` | N/A | Mainnet only |
-| V3 Position Manager | `0x3CEd...699` | N/A | Mainnet only |
+| V3 Factory | `0x2624...cDC` | `0x2624...cDC` | Same on both networks |
+| V3 Position Manager | `0x3CEd...699` | `0x3CEd...699` | Same on both networks |
 | Multicall V3 | `0x1E42...5a9` | `0x1E42...5a9` | Standard Multicall3 |
 
 ---
