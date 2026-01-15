@@ -4,17 +4,18 @@ import { useMemo } from "react";
 import { useChainId, useConnections } from "wagmi";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useETCswapV2Positions } from "@/hooks/useETCswapV2Positions";
-import { useETCEcosystemPrices } from "@/hooks/useETCEcosystemPrices";
+import { useEnhancedPrices } from "@/hooks/useEnhancedPrices";
 import { PositionCard } from "@/components/portfolio/PositionCard";
 import { UpdateIndicator } from "@/components/portfolio/UpdateIndicator";
 import { CollapsiblePanel } from "@/components/ui/CollapsiblePanel";
+import { CHAINS_BY_ID } from "@/lib/networks/registry";
 
 export function PositionsPanel() {
     const connections = useConnections();
     const chainId = useChainId();
     const { data: positions, isLoading, error, dataUpdatedAt, isFetching } =
         useETCswapV2Positions();
-    const { data: prices } = useETCEcosystemPrices();
+    const { knownPrices: prices, derivedPrices } = useEnhancedPrices();
 
     const address = useMemo(() => {
         const first = connections?.[0];
@@ -23,14 +24,18 @@ export function PositionsPanel() {
     }, [connections]);
 
     const isConnected = Boolean(address);
+    const chain = CHAINS_BY_ID[chainId];
+    const isTestnet = chain?.testnet || false;
     const positionCount = positions?.length || 0;
-    const positionCountLabel = positionCount > 0 ? `${positionCount} ${positionCount === 1 ? "Position" : "Positions"}` : "LP Positions";
+    const positionCountLabel = positionCount > 0
+        ? `${positionCount} ${positionCount === 1 ? "Position" : "Positions"}${isTestnet ? " (Testnet)" : ""}`
+        : "Liquidity Positions";
 
     // State 1: Disconnected
     if (!isConnected || !address) {
         return (
             <CollapsiblePanel
-                title="LP Positions"
+                title="Liquidity Positions"
                 description={positionCountLabel}
                 defaultExpanded={true}
             >
@@ -45,7 +50,7 @@ export function PositionsPanel() {
     if (isLoading) {
         return (
             <CollapsiblePanel
-                title="LP Positions"
+                title="Liquidity Positions"
                 description={positionCountLabel}
                 defaultExpanded={true}
             >
@@ -61,7 +66,7 @@ export function PositionsPanel() {
     if (error) {
         return (
             <CollapsiblePanel
-                title="LP Positions"
+                title="Liquidity Positions"
                 description={positionCountLabel}
                 defaultExpanded={true}
             >
@@ -81,7 +86,7 @@ export function PositionsPanel() {
     if (!positions || positions.length === 0) {
         return (
             <CollapsiblePanel
-                title="LP Positions"
+                title="Liquidity Positions"
                 description={positionCountLabel}
                 defaultExpanded={true}
             >
@@ -96,7 +101,7 @@ export function PositionsPanel() {
     // State 5: Data (positions with balances)
     return (
         <CollapsiblePanel
-            title="LP Positions"
+            title="Liquidity Positions"
             description={positionCountLabel}
             defaultExpanded={true}
         >
@@ -114,6 +119,7 @@ export function PositionsPanel() {
                         position={position}
                         chainId={chainId}
                         prices={prices}
+                        derivedPrices={derivedPrices}
                     />
                 ))}
             </div>

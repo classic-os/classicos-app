@@ -14,7 +14,7 @@ import { useState } from "react";
 export type CopyButtonProps = {
     text: string; // Text to copy
     label?: string; // Button label (default: "Copy")
-    size?: "sm" | "md" | "lg";
+    size?: "xs" | "sm" | "md" | "lg";
     variant?: "default" | "ghost" | "outline";
 };
 
@@ -109,8 +109,10 @@ function getVariantClasses(variant: "default" | "ghost" | "outline"): string {
 /**
  * Get size-specific button classes
  */
-function getSizeClasses(size: "sm" | "md" | "lg"): string {
+function getSizeClasses(size: "xs" | "sm" | "md" | "lg"): string {
     switch (size) {
+        case "xs":
+            return "px-1 py-0.5 text-xs";
         case "sm":
             return "px-2 py-1 text-xs";
         case "md":
@@ -125,8 +127,10 @@ function getSizeClasses(size: "sm" | "md" | "lg"): string {
 /**
  * Get size-specific icon classes
  */
-function getIconSizeClasses(size: "sm" | "md" | "lg"): string {
+function getIconSizeClasses(size: "xs" | "sm" | "md" | "lg"): string {
     switch (size) {
+        case "xs":
+            return "h-2.5 w-2.5";
         case "sm":
             return "h-3 w-3";
         case "md":

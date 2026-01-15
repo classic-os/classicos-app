@@ -4,6 +4,7 @@ import { formatEther } from "viem";
 import { useChainId } from "wagmi";
 import { usePortfolioSummary } from "@/hooks/usePortfolioSummary";
 import { useETCEcosystemPrices } from "@/hooks/useETCEcosystemPrices";
+import { useEnhancedPrices } from "@/hooks/useEnhancedPrices";
 import { getEcosystem } from "@/lib/ecosystems/registry";
 import { CHAINS_BY_ID } from "@/lib/networks/registry";
 import { formatTokenBalance } from "@/lib/utils/format";
@@ -34,6 +35,7 @@ export function PortfolioSummary() {
     const chainId = useChainId();
     const summary = usePortfolioSummary();
     const { data: prices, isLoading: isPriceLoading, refetch: refetchPrices } = useETCEcosystemPrices();
+    const { derivedPrices } = useEnhancedPrices();
     const { data: tokenBalances, refetch: refetchTokens } = useTokenBalances();
     const { data: positions, refetch: refetchPositions } = useETCswapV2Positions();
     const { refetch: refetchPriceHistory } = usePriceHistory("ethereum-classic");
@@ -140,7 +142,7 @@ export function PortfolioSummary() {
         ? calculateNativeUSDValue(summary.native.balance, prices, isTestnet)
         : 0;
 
-    // Calculate USD value for tokens (USC, WETC have known prices)
+    // Calculate USD value for tokens (known + derived prices from LP pools)
     const tokensUSDValue = prices && tokenBalances
         ? calculateTokensUSDValue(
               tokenBalances.map((tb) => ({
@@ -148,13 +150,14 @@ export function PortfolioSummary() {
                   balance: tb.balance,
                   decimals: tb.token.decimals,
               })),
-              prices
+              prices,
+              derivedPrices
           )
         : 0;
 
-    // Calculate USD value for LP positions
+    // Calculate USD value for LP positions (known + derived prices)
     const positionsUSDValue = prices && positions
-        ? calculatePositionsUSDValue(positions, prices)
+        ? calculatePositionsUSDValue(positions, prices, derivedPrices)
         : 0;
 
     // Total portfolio value across all asset types
@@ -266,6 +269,18 @@ export function PortfolioSummary() {
                             {summary.tokens.count === 1 ? "Token" : "Tokens"}
                         </div>
                     </div>
+                    {/* USD Value */}
+                    {summary.tokens.hasBalances && (
+                        <div className="mt-2 text-sm text-white/50">
+                            {isPriceLoading && <span>Loading price...</span>}
+                            {!isPriceLoading && tokensUSDValue > 0 && (
+                                <span>{formatUSDValue(tokensUSDValue)}</span>
+                            )}
+                            {!isPriceLoading && prices && tokensUSDValue === 0 && (
+                                <span>Price unavailable</span>
+                            )}
+                        </div>
+                    )}
                     {!summary.tokens.hasBalances && (
                         <div className="mt-1 text-xs text-white/50">No token balances</div>
                     )}
@@ -274,7 +289,7 @@ export function PortfolioSummary() {
                 {/* Positions Card */}
                 <div className="rounded-lg border border-white/10 bg-white/5 p-4">
                     <div className="text-xs font-medium uppercase tracking-wide text-white/55">
-                        LP Positions
+                        Liquidity Positions
                     </div>
                     <div className="mt-2 flex items-baseline gap-2">
                         <div className="font-mono text-xl font-semibold text-white/90">
@@ -284,6 +299,18 @@ export function PortfolioSummary() {
                             {summary.positions.count === 1 ? "Position" : "Positions"}
                         </div>
                     </div>
+                    {/* USD Value */}
+                    {summary.positions.hasPositions && (
+                        <div className="mt-2 text-sm text-white/50">
+                            {isPriceLoading && <span>Loading price...</span>}
+                            {!isPriceLoading && positionsUSDValue > 0 && (
+                                <span>{formatUSDValue(positionsUSDValue)}</span>
+                            )}
+                            {!isPriceLoading && prices && positionsUSDValue === 0 && (
+                                <span>Price unavailable</span>
+                            )}
+                        </div>
+                    )}
                     {!summary.positions.hasPositions && (
                         <div className="mt-1 text-xs text-white/50">No active positions</div>
                     )}

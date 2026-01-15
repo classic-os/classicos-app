@@ -1,5 +1,6 @@
 import type { Address } from "viem";
 import type { ETCPriceData } from "@/lib/portfolio/price-adapter";
+import type { DerivedPrice } from "@/lib/portfolio/derived-prices";
 
 /**
  * Known token addresses for price derivation
@@ -20,13 +21,15 @@ const USC_ADDRESS = "0xDE093684c796204224BC081f937aa059D903c52a".toLowerCase();
  * @param tokenDecimals - Token decimals
  * @param tokenAddress - Token contract address
  * @param prices - ETC ecosystem prices
+ * @param derivedPrices - Optional map of derived prices from LP pools
  * @returns USD value or null if price unavailable
  */
 export function calculateTokenUSDValue(
     tokenAmount: bigint,
     tokenDecimals: number,
     tokenAddress: Address,
-    prices: ETCPriceData
+    prices: ETCPriceData,
+    derivedPrices?: Map<string, DerivedPrice>
 ): number | null {
     if (tokenAmount === BigInt(0)) {
         return 0;
@@ -38,6 +41,7 @@ export function calculateTokenUSDValue(
     // Determine which price to use based on token address
     const normalizedAddress = tokenAddress.toLowerCase();
 
+    // Try known prices first
     if (normalizedAddress === WETC_ADDRESS) {
         return amount * prices.wetc.price;
     }
@@ -46,8 +50,15 @@ export function calculateTokenUSDValue(
         return amount * prices.usc.price;
     }
 
-    // For other tokens, we'd need DEX pair data to derive prices
-    // This will be implemented in Phase 2 with DEX integration
+    // Try derived prices if provided
+    if (derivedPrices) {
+        const derived = derivedPrices.get(normalizedAddress);
+        if (derived) {
+            return amount * derived.price;
+        }
+    }
+
+    // No price available
     return null;
 }
 
@@ -89,6 +100,7 @@ export function calculateNativeUSDValue(
  * @param token1Decimals - Token1 decimals
  * @param token1Reserve - User's share of token1 reserves
  * @param prices - ETC ecosystem prices
+ * @param derivedPrices - Optional map of derived prices from LP pools
  * @returns USD value or null if neither token has known price
  */
 export function calculateLPPositionUSDValue(
@@ -98,20 +110,23 @@ export function calculateLPPositionUSDValue(
     token1Address: Address,
     token1Decimals: number,
     token1Reserve: bigint,
-    prices: ETCPriceData
+    prices: ETCPriceData,
+    derivedPrices?: Map<string, DerivedPrice>
 ): number | null {
     const token0Value = calculateTokenUSDValue(
         token0Reserve,
         token0Decimals,
         token0Address,
-        prices
+        prices,
+        derivedPrices
     );
 
     const token1Value = calculateTokenUSDValue(
         token1Reserve,
         token1Decimals,
         token1Address,
-        prices
+        prices,
+        derivedPrices
     );
 
     // If we have both values, return sum
@@ -137,6 +152,7 @@ export function calculateLPPositionUSDValue(
  *
  * @param tokenBalances - Array of token balances with address, amount, decimals
  * @param prices - ETC ecosystem prices
+ * @param derivedPrices - Optional map of derived prices from LP pools
  * @returns Total USD value of all tokens
  */
 export function calculateTokensUSDValue(
@@ -145,7 +161,8 @@ export function calculateTokensUSDValue(
         balance: bigint;
         decimals: number;
     }>,
-    prices: ETCPriceData
+    prices: ETCPriceData,
+    derivedPrices?: Map<string, DerivedPrice>
 ): number {
     let total = 0;
 
@@ -154,7 +171,8 @@ export function calculateTokensUSDValue(
             token.balance,
             token.decimals,
             token.tokenAddress,
-            prices
+            prices,
+            derivedPrices
         );
 
         if (value !== null) {
@@ -172,6 +190,7 @@ export function calculateTokensUSDValue(
  * @param lpTotalSupplies - Map of LP token address to total supply
  * @param lpBalances - Map of LP token address to user balance
  * @param prices - ETC ecosystem prices
+ * @param derivedPrices - Optional map of derived prices from LP pools
  * @returns Total USD value of all LP positions
  */
 export function calculatePositionsUSDValue(
@@ -190,7 +209,8 @@ export function calculatePositionsUSDValue(
             readonly reserve: bigint;
         };
     }>,
-    prices: ETCPriceData
+    prices: ETCPriceData,
+    derivedPrices?: Map<string, DerivedPrice>
 ): number {
     let total = 0;
 
@@ -207,7 +227,8 @@ export function calculatePositionsUSDValue(
             position.token1.address,
             position.token1.decimals,
             userReserve1,
-            prices
+            prices,
+            derivedPrices
         );
 
         if (value !== null) {
