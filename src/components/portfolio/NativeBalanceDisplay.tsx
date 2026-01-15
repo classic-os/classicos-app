@@ -1,15 +1,23 @@
 "use client";
 
-import { useAccount, useChainId } from "wagmi";
+import { useMemo } from "react";
+import { useChainId, useConnections } from "wagmi";
 import { formatEther } from "viem";
 import { useNativeBalance } from "@/hooks/useNativeBalance";
 import { CHAINS_BY_ID } from "@/lib/networks/registry";
 
 export function NativeBalanceDisplay() {
-    const { address, isConnected } = useAccount();
+    const connections = useConnections();
     const chainId = useChainId();
     const { data: balance, isLoading, error } = useNativeBalance();
 
+    const address = useMemo(() => {
+        const first = connections?.[0];
+        const acct = first?.accounts?.[0];
+        return typeof acct === "string" ? acct : undefined;
+    }, [connections]);
+
+    const isConnected = Boolean(address);
     const chain = CHAINS_BY_ID[chainId];
     const nativeSymbol = chain?.nativeCurrency?.symbol || "ETH";
 
