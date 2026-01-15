@@ -23,7 +23,10 @@ export type ETCPriceData = {
 };
 
 /**
- * Fetches all ETC ecosystem prices in USD from CoinGecko public API
+ * Fetches all ETC ecosystem prices in USD from CoinGecko API
+ *
+ * Uses Next.js API route to avoid CORS issues with direct CoinGecko API calls.
+ * The API route proxies requests to CoinGecko and adds caching headers.
  *
  * Fetches three key prices:
  * 1. ETC (ethereum-classic) - Native asset
@@ -34,9 +37,9 @@ export type ETCPriceData = {
  * @throws Error if fetch fails or response is invalid
  */
 export async function fetchETCEcosystemPrices(): Promise<ETCPriceData> {
-    // Fetch all three prices in one API call
+    // Use Next.js API route to avoid CORS issues
     const url =
-        "https://api.coingecko.com/api/v3/simple/price?ids=ethereum-classic,classic-usd,wrapped-etc-2&vs_currencies=usd&include_last_updated_at=true";
+        "/api/prices?ids=ethereum-classic,classic-usd,wrapped-etc-2&vs_currencies=usd&include_last_updated_at=true";
 
     const response = await fetch(url, {
         method: "GET",

@@ -6,7 +6,7 @@ import { usePortfolioSummary } from "@/hooks/usePortfolioSummary";
 import { useETCEcosystemPrices } from "@/hooks/useETCEcosystemPrices";
 import { getEcosystem } from "@/lib/ecosystems/registry";
 import { CHAINS_BY_ID } from "@/lib/networks/registry";
-import { formatTokenBalance, formatNumber } from "@/lib/utils/format";
+import { formatTokenBalance } from "@/lib/utils/format";
 import {
     calculateNativeUSDValue,
     calculateTokensUSDValue,

@@ -1,6 +1,5 @@
 import type { Address } from "viem";
 import type { ETCPriceData } from "@/lib/portfolio/price-adapter";
-import type { TokenInfo } from "@/lib/portfolio/token-registry";
 
 /**
  * Known token addresses for price derivation
@@ -57,13 +56,13 @@ export function calculateTokenUSDValue(
  *
  * @param nativeBalance - Native balance in wei
  * @param prices - ETC ecosystem prices
- * @param isTestnet - Whether this is testnet (Mordor)
+ * @param _isTestnet - Whether this is testnet (Mordor) - currently unused but kept for API consistency
  * @returns USD value (uses mainnet prices for testnet display)
  */
 export function calculateNativeUSDValue(
     nativeBalance: bigint,
     prices: ETCPriceData,
-    isTestnet: boolean
+    _isTestnet: boolean
 ): number {
     if (nativeBalance === BigInt(0)) {
         return 0;
