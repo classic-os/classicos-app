@@ -47,8 +47,6 @@ export function PortfolioSummary() {
     const { refetch: refetchPriceHistory } = usePriceHistory("ethereum-classic");
     const { refetch: refetchBalance } = useNativeBalance();
 
-    // Combine V2 and V3 positions
-    const allPositions = [...(v2Positions || []), ...(v3Positions || [])];
     const ecosystem = getEcosystem(chainId);
     const chain = CHAINS_BY_ID[chainId];
     const nativeSymbol = chain?.nativeCurrency?.symbol || "ETH";

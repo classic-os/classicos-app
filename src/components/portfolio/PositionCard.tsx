@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { formatUnits } from "viem";
 import type { ETCswapV2Position } from "@/lib/portfolio/adapters/etcswap-v2-positions";
 import type { ETCswapV3Position } from "@/lib/portfolio/adapters/etcswap-v3-positions";
@@ -15,6 +16,7 @@ import { formatCurrencyValue } from "@/lib/currencies/format";
 import { estimateAPY } from "@/lib/portfolio/lp-apy";
 import { getTokenPrice } from "@/lib/portfolio/derived-prices";
 import { getTokenAmountsFromLiquidity, calculateV3PositionValue, tickToPrice } from "@/lib/portfolio/v3-math";
+import { detectArbitrageOpportunities } from "@/lib/portfolio/arbitrage-detection";
 
 type PositionCardProps = {
     position: ETCswapV2Position | ETCswapV3Position;
@@ -54,6 +56,7 @@ function LPTokenAmount({ value }: { value: string }) {
  */
 export function PositionCard({ position, chainId, prices, derivedPrices, currency, exchangeRates }: PositionCardProps) {
     // Route to V3-specific renderer if V3 position
+    // Note: We immediately delegate to V3PositionCard to avoid hooks issues
     if (position.protocol === "etcswap-v3") {
         return (
             <V3PositionCard
@@ -67,7 +70,16 @@ export function PositionCard({ position, chainId, prices, derivedPrices, currenc
         );
     }
 
-    // V2 position renderer (existing code)
+    // V2 position renderer
+    return <V2PositionCard position={position} chainId={chainId} prices={prices} derivedPrices={derivedPrices} currency={currency} exchangeRates={exchangeRates} />;
+}
+
+/**
+ * V2 Position Card Component
+ *
+ * Displays an ETCswap V2 AMM liquidity position.
+ */
+function V2PositionCard({ position, chainId, prices, derivedPrices, currency, exchangeRates }: { position: ETCswapV2Position; chainId: number; prices?: ETCPriceData; derivedPrices?: Map<string, DerivedPrice>; currency: CurrencyCode; exchangeRates?: ExchangeRates; }) {
     const { token0, token1, lpBalance, lpTotalSupply, poolShare } = position;
 
     // Look up token metadata from registry for logos
@@ -150,6 +162,11 @@ export function PositionCard({ position, chainId, prices, derivedPrices, currenc
     const token0PriceSource = getPriceSource(token0.address);
     const token1PriceSource = getPriceSource(token1.address);
 
+    // Detect arbitrage opportunities (1% threshold)
+    const [showArbitrageDetails, setShowArbitrageDetails] = useState(false);
+    const arbitrageOpportunities = prices ? detectArbitrageOpportunities(position, prices, 1.0) : [];
+    const hasArbitrage = arbitrageOpportunities.length > 0;
+
     return (
         <div className="rounded-xl border border-white/10 bg-white/5 p-4">
             {/* Header: Token Logos + Pool name + Protocol badge */}
@@ -172,6 +189,15 @@ export function PositionCard({ position, chainId, prices, derivedPrices, currenc
                             <span className="rounded border border-white/20 bg-white/5 px-1.5 py-0.5 text-xs font-medium text-white/70">
                                 In Range
                             </span>
+                            {hasArbitrage && (
+                                <button
+                                    onClick={() => setShowArbitrageDetails(!showArbitrageDetails)}
+                                    className="rounded border border-yellow-500/30 bg-yellow-500/10 px-1.5 py-0.5 text-xs font-medium text-yellow-400 transition hover:bg-yellow-500/20"
+                                    title="Click to view arbitrage opportunities"
+                                >
+                                    Arbitrage {arbitrageOpportunities.length > 1 ? `(${arbitrageOpportunities.length})` : ""}
+                                </button>
+                            )}
                         </div>
                     </div>
                     <a
@@ -197,6 +223,74 @@ export function PositionCard({ position, chainId, prices, derivedPrices, currenc
                     </a>
                 </div>
             </div>
+
+            {/* Arbitrage Opportunities (expandable) */}
+            {hasArbitrage && showArbitrageDetails && (
+                <div className="mb-3 rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-3">
+                    <div className="mb-2 flex items-center gap-2">
+                        <span className="text-xs font-medium uppercase tracking-wide text-yellow-400">
+                            Arbitrage Opportunities Detected
+                        </span>
+                        <span className="text-xs text-yellow-400/70">
+                            (DEX vs CoinGecko FMV)
+                        </span>
+                    </div>
+                    <div className="space-y-2">
+                        {arbitrageOpportunities.map((opp) => (
+                            <div
+                                key={opp.tokenAddress}
+                                className={`rounded-lg border ${
+                                    opp.type === "premium"
+                                        ? "border-green-500/30 bg-green-500/10"
+                                        : "border-red-500/30 bg-red-500/10"
+                                } p-2`}
+                            >
+                                <div className="mb-1 flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-sm font-medium text-white/90">
+                                            {opp.tokenSymbol}
+                                        </span>
+                                        <span
+                                            className={`text-xs font-medium ${
+                                                opp.type === "premium" ? "text-green-400" : "text-red-400"
+                                            }`}
+                                        >
+                                            {opp.deviationPercent > 0 ? "+" : ""}
+                                            {opp.deviationPercent.toFixed(2)}%
+                                        </span>
+                                    </div>
+                                    <div
+                                        className={`rounded px-1.5 py-0.5 text-xs font-medium ${
+                                            opp.type === "premium"
+                                                ? "bg-green-500/20 text-green-400"
+                                                : "bg-red-500/20 text-red-400"
+                                        }`}
+                                    >
+                                        {opp.type === "premium" ? "Sell DEX, Buy CEX" : "Buy DEX, Sell CEX"}
+                                    </div>
+                                </div>
+                                <div className="space-y-1 text-xs">
+                                    <div className="flex items-baseline justify-between text-white/70">
+                                        <span>DEX Price ({opp.source})</span>
+                                        <span className="font-mono text-white/90">
+                                            {formatCurrencyValue(opp.dexPrice, currency, exchangeRates)}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-baseline justify-between text-white/70">
+                                        <span>CoinGecko FMV (CEX)</span>
+                                        <span className="font-mono text-white/90">
+                                            {formatCurrencyValue(opp.fmvPrice, currency, exchangeRates)}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="mt-2 text-xs text-white/50">
+                        Price deviations reflect market inefficiencies between DEX and CEX liquidity.
+                    </div>
+                </div>
+            )}
 
             {/* Your Position (consolidated: value, LP tokens, APY, tokens) */}
             <div className="mb-3 rounded-lg border border-white/10 bg-black/20 p-3">
@@ -477,6 +571,11 @@ function V3PositionCard({ position, chainId, prices, derivedPrices, currency, ex
     const token0PriceSource = getPriceSource(token0.address);
     const token1PriceSource = getPriceSource(token1.address);
 
+    // Detect arbitrage opportunities (1% threshold)
+    const [showArbitrageDetails, setShowArbitrageDetails] = useState(false);
+    const arbitrageOpportunities = prices ? detectArbitrageOpportunities(position, prices, 1.0) : [];
+    const hasArbitrage = arbitrageOpportunities.length > 0;
+
     // External pool link - V3 uses /pools/{tokenId}?chain={classic|mordor} format
     // Format: https://v3.etcswap.org/#/pools/95?chain=classic (mainnet) or https://v3.etcswap.org/#/pools/95?chain=mordor (testnet)
     const chainParam = chainId === 63 ? "mordor" : "classic";
@@ -509,6 +608,15 @@ function V3PositionCard({ position, chainId, prices, derivedPrices, currency, ex
                                     Out of Range
                                 </span>
                             )}
+                            {hasArbitrage && (
+                                <button
+                                    onClick={() => setShowArbitrageDetails(!showArbitrageDetails)}
+                                    className="rounded border border-yellow-500/30 bg-yellow-500/10 px-1.5 py-0.5 text-xs font-medium text-yellow-400 transition hover:bg-yellow-500/20"
+                                    title="Click to view arbitrage opportunities"
+                                >
+                                    Arbitrage {arbitrageOpportunities.length > 1 ? `(${arbitrageOpportunities.length})` : ""}
+                                </button>
+                            )}
                         </div>
                     </div>
                     <a
@@ -534,6 +642,74 @@ function V3PositionCard({ position, chainId, prices, derivedPrices, currency, ex
                     </a>
                 </div>
             </div>
+
+            {/* Arbitrage Opportunities (expandable) */}
+            {hasArbitrage && showArbitrageDetails && (
+                <div className="mb-3 rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-3">
+                    <div className="mb-2 flex items-center gap-2">
+                        <span className="text-xs font-medium uppercase tracking-wide text-yellow-400">
+                            Arbitrage Opportunities Detected
+                        </span>
+                        <span className="text-xs text-yellow-400/70">
+                            (DEX vs CoinGecko FMV)
+                        </span>
+                    </div>
+                    <div className="space-y-2">
+                        {arbitrageOpportunities.map((opp) => (
+                            <div
+                                key={opp.tokenAddress}
+                                className={`rounded-lg border ${
+                                    opp.type === "premium"
+                                        ? "border-green-500/30 bg-green-500/10"
+                                        : "border-red-500/30 bg-red-500/10"
+                                } p-2`}
+                            >
+                                <div className="mb-1 flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-sm font-medium text-white/90">
+                                            {opp.tokenSymbol}
+                                        </span>
+                                        <span
+                                            className={`text-xs font-medium ${
+                                                opp.type === "premium" ? "text-green-400" : "text-red-400"
+                                            }`}
+                                        >
+                                            {opp.deviationPercent > 0 ? "+" : ""}
+                                            {opp.deviationPercent.toFixed(2)}%
+                                        </span>
+                                    </div>
+                                    <div
+                                        className={`rounded px-1.5 py-0.5 text-xs font-medium ${
+                                            opp.type === "premium"
+                                                ? "bg-green-500/20 text-green-400"
+                                                : "bg-red-500/20 text-red-400"
+                                        }`}
+                                    >
+                                        {opp.type === "premium" ? "Sell DEX, Buy CEX" : "Buy DEX, Sell CEX"}
+                                    </div>
+                                </div>
+                                <div className="space-y-1 text-xs">
+                                    <div className="flex items-baseline justify-between text-white/70">
+                                        <span>DEX Price ({opp.source})</span>
+                                        <span className="font-mono text-white/90">
+                                            {formatCurrencyValue(opp.dexPrice, currency, exchangeRates)}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-baseline justify-between text-white/70">
+                                        <span>CoinGecko FMV (CEX)</span>
+                                        <span className="font-mono text-white/90">
+                                            {formatCurrencyValue(opp.fmvPrice, currency, exchangeRates)}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="mt-2 text-xs text-white/50">
+                        Price deviations reflect market inefficiencies between DEX and CEX liquidity.
+                    </div>
+                </div>
+            )}
 
             {/* Your Position (comprehensive view matching V2) */}
             <div className="mb-3 rounded-lg border border-white/10 bg-black/20 p-3">
