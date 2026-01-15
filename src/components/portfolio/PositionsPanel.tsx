@@ -2,11 +2,11 @@
 
 import { useMemo } from "react";
 import { useChainId, useConnections } from "wagmi";
-import { Panel } from "@/components/ui/Panel";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useETCswapV2Positions } from "@/hooks/useETCswapV2Positions";
 import { PositionCard } from "@/components/portfolio/PositionCard";
 import { UpdateIndicator } from "@/components/portfolio/UpdateIndicator";
+import { CollapsiblePanel } from "@/components/ui/CollapsiblePanel";
 
 export function PositionsPanel() {
     const connections = useConnections();
@@ -21,35 +21,49 @@ export function PositionsPanel() {
     }, [connections]);
 
     const isConnected = Boolean(address);
+    const positionCount = positions?.length || 0;
+    const positionCountLabel = positionCount > 0 ? `${positionCount} ${positionCount === 1 ? "Position" : "Positions"}` : "LP Positions";
 
     // State 1: Disconnected
     if (!isConnected || !address) {
         return (
-            <Panel title="Positions" description="DeFi protocol positions">
+            <CollapsiblePanel
+                title="LP Positions"
+                description={positionCountLabel}
+                defaultExpanded={true}
+            >
                 <div className="text-sm text-white/55">
                     Connect wallet to view positions
                 </div>
-            </Panel>
+            </CollapsiblePanel>
         );
     }
 
     // State 2: Loading
     if (isLoading) {
         return (
-            <Panel title="Positions" description="DeFi protocol positions">
+            <CollapsiblePanel
+                title="LP Positions"
+                description={positionCountLabel}
+                defaultExpanded={true}
+            >
                 <div className="space-y-3">
                     <div className="h-32 w-full animate-pulse rounded-xl bg-white/5" />
                     <div className="h-32 w-full animate-pulse rounded-xl bg-white/5" />
                 </div>
-            </Panel>
+            </CollapsiblePanel>
         );
     }
 
     // State 3: Error
     if (error) {
         return (
-            <Panel title="Positions" description="DeFi protocol positions">
-                <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4">
+            <CollapsiblePanel
+                title="LP Positions"
+                description={positionCountLabel}
+                defaultExpanded={true}
+            >
+                <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4">
                     <div className="text-sm font-medium text-red-400">
                         Failed to load positions
                     </div>
@@ -57,25 +71,33 @@ export function PositionsPanel() {
                         {error instanceof Error ? error.message : "Unknown error occurred"}
                     </div>
                 </div>
-            </Panel>
+            </CollapsiblePanel>
         );
     }
 
     // State 4: Empty (no positions)
     if (!positions || positions.length === 0) {
         return (
-            <Panel title="Positions" description="DeFi protocol positions">
+            <CollapsiblePanel
+                title="LP Positions"
+                description={positionCountLabel}
+                defaultExpanded={true}
+            >
                 <EmptyState
                     title="No active positions"
                     body="You don't have any liquidity provider positions on ETCswap V2 or other supported protocols. LP positions allow you to earn trading fees by providing liquidity to token pairs."
                 />
-            </Panel>
+            </CollapsiblePanel>
         );
     }
 
     // State 5: Data (positions with balances)
     return (
-        <Panel title="Positions" description="DeFi protocol positions">
+        <CollapsiblePanel
+            title="LP Positions"
+            description={positionCountLabel}
+            defaultExpanded={true}
+        >
             <div className="space-y-3">
                 {/* Update indicator at top of positions list */}
                 {dataUpdatedAt && (
@@ -92,6 +114,6 @@ export function PositionsPanel() {
                     />
                 ))}
             </div>
-        </Panel>
+        </CollapsiblePanel>
     );
 }
