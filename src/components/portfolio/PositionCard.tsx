@@ -2,6 +2,7 @@ import { formatUnits } from "viem";
 import type { ETCswapV2Position } from "@/lib/portfolio/adapters/etcswap-v2-positions";
 import { ProtocolBadge } from "@/components/portfolio/ProtocolBadge";
 import { ETCSWAP_V2_METADATA } from "@/lib/protocols/etcswap-contracts";
+import { formatTokenBalance, formatNumber } from "@/lib/utils/format";
 
 type PositionCardProps = {
     position: ETCswapV2Position;
@@ -69,7 +70,7 @@ export function PositionCard({ position, chainId }: PositionCardProps) {
                 <div className="mb-1 flex items-baseline justify-between text-xs">
                     <span className="text-white/55">Pool Share</span>
                     <span className="font-medium text-white/90">
-                        {poolShare.toFixed(4)}%
+                        {formatNumber(poolShare, 4, 0)}%
                     </span>
                 </div>
                 <div className="h-1.5 overflow-hidden rounded-full bg-white/5">
@@ -84,7 +85,7 @@ export function PositionCard({ position, chainId }: PositionCardProps) {
             <div className="mb-3 rounded-lg bg-white/5 p-2.5">
                 <div className="text-xs text-white/55">LP Tokens</div>
                 <div className="mt-0.5 font-mono text-sm text-white/90">
-                    {parseFloat(lpBalanceFormatted).toFixed(6)}
+                    {formatTokenBalance(lpBalanceFormatted)}
                 </div>
             </div>
 
@@ -93,13 +94,13 @@ export function PositionCard({ position, chainId }: PositionCardProps) {
                 <div className="rounded-lg bg-white/5 p-2.5">
                     <div className="text-xs text-white/55">{token0.symbol}</div>
                     <div className="mt-0.5 font-mono text-sm text-white/90">
-                        {parseFloat(reserve0Formatted).toFixed(2)}
+                        {formatTokenBalance(reserve0Formatted)}
                     </div>
                 </div>
                 <div className="rounded-lg bg-white/5 p-2.5">
                     <div className="text-xs text-white/55">{token1.symbol}</div>
                     <div className="mt-0.5 font-mono text-sm text-white/90">
-                        {parseFloat(reserve1Formatted).toFixed(2)}
+                        {formatTokenBalance(reserve1Formatted)}
                     </div>
                 </div>
             </div>

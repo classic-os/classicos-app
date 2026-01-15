@@ -4,6 +4,7 @@ import { formatEther } from "viem";
 import { useChainId } from "wagmi";
 import { usePortfolioSummary } from "@/hooks/usePortfolioSummary";
 import { CHAINS_BY_ID } from "@/lib/networks/registry";
+import { formatTokenBalance } from "@/lib/utils/format";
 
 /**
  * Portfolio Summary Component
@@ -82,8 +83,8 @@ export function PortfolioSummary() {
 
     // State 5: Data - show summary
     const nativeBalanceFormatted = summary.native.balance
-        ? parseFloat(formatEther(summary.native.balance)).toFixed(4)
-        : "0.0000";
+        ? formatTokenBalance(formatEther(summary.native.balance))
+        : "0";
 
     return (
         <div className="rounded-xl border border-white/10 bg-black/20 p-6">

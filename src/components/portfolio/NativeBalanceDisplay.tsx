@@ -5,7 +5,11 @@ import { useChainId, useConnections } from "wagmi";
 import { formatEther } from "viem";
 import { useNativeBalance } from "@/hooks/useNativeBalance";
 import { UpdateIndicator } from "@/components/portfolio/UpdateIndicator";
+import { TokenLogo } from "@/components/portfolio/TokenLogo";
 import { CHAINS_BY_ID } from "@/lib/networks/registry";
+import { formatTokenBalance } from "@/lib/utils/format";
+
+const ETC_LOGO_URL = "https://raw.githubusercontent.com/etcswap/token-list/refs/heads/main/assets/ethereum-classic.png";
 
 export function NativeBalanceDisplay() {
     const connections = useConnections();
@@ -63,11 +67,12 @@ export function NativeBalanceDisplay() {
 
     return (
         <div className="rounded-xl border border-white/10 bg-black/20 p-4">
-            <div className="flex items-center justify-between">
-                <div>
+            <div className="flex items-center gap-3">
+                <TokenLogo logoURI={ETC_LOGO_URL} symbol={nativeSymbol} size="lg" />
+                <div className="flex-1">
                     <div className="text-xs text-white/55">Native Balance</div>
                     <div className="mt-1 text-2xl font-semibold text-white/90">
-                        {parseFloat(formattedBalance).toFixed(4)} {nativeSymbol}
+                        {formatTokenBalance(formattedBalance)} {nativeSymbol}
                     </div>
                     {isZero && (
                         <div className="mt-1 text-xs text-white/45">
@@ -83,9 +88,8 @@ export function NativeBalanceDisplay() {
                             />
                         </div>
                     )}
-                </div>
-                <div className="flex flex-col items-end gap-1">
-                    <div className="rounded-lg bg-white/5 px-2 py-1 text-xs text-white/70">
+
+                    <div className="mt-2 rounded-lg bg-white/5 px-2 py-1 text-xs text-white/70">
                         {chain?.name || `Chain ${chainId}`}
                     </div>
                 </div>

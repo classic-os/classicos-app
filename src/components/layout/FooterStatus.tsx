@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useSyncExternalStore } from "react";
-import { useChainId, useConnections, useSwitchChain } from "wagmi";
+import { useConnections, useSwitchChain } from "wagmi";
 import { CHAINS_BY_ID, DEFAULT_ACTIVE_CHAIN_ID } from "@/lib/networks/registry";
 import { getActiveChainId, subscribeWorkspace } from "@/lib/state/workspace";
 
@@ -12,7 +12,12 @@ function shortAddress(addr?: string) {
 
 export function FooterStatus() {
     const connections = useConnections();
-    const walletChainId = useChainId();
+
+    // Get the actual chain ID from the connection (not from wagmi config)
+    // This allows us to detect unsupported chains that aren't in wagmi config
+    const walletChainId = useMemo(() => {
+        return connections?.[0]?.chainId;
+    }, [connections]);
 
     // wagmi v3: `switchChain` is deprecated; use mutate/mutateAsync
     const { mutate: switchChain, isPending } = useSwitchChain();
@@ -31,10 +36,10 @@ export function FooterStatus() {
 
     const isConnected = Boolean(address);
 
-    const connectedChain = CHAINS_BY_ID[walletChainId];
+    const connectedChain = walletChainId ? CHAINS_BY_ID[walletChainId] : undefined;
     const activeChain = CHAINS_BY_ID[activeChainId];
 
-    const mismatch = isConnected && walletChainId !== activeChainId;
+    const mismatch = isConnected && walletChainId && walletChainId !== activeChainId;
     const shortAddr = shortAddress(address);
 
     return (

@@ -5,8 +5,12 @@ import BackgroundSystem from "@/components/layout/BackgroundSystem";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { TopBar } from "@/components/layout/TopBar";
 import { FooterStatus } from "@/components/layout/FooterStatus";
+import { useSyncActiveChain } from "@/hooks/useSyncActiveChain";
 
 export function AppShell({ children }: { children: ReactNode }) {
+    // Automatically sync active workspace chain to match wallet's connected chain
+    useSyncActiveChain();
+
     return (
         <div className="relative min-h-screen overflow-hidden">
             <BackgroundSystem />

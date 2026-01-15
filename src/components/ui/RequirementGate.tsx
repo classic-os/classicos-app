@@ -1,26 +1,25 @@
 "use client";
 
-import { ReactNode, useMemo, useSyncExternalStore } from "react";
-import { useChainId, useConnections } from "wagmi";
+import { ReactNode, useMemo } from "react";
+import { useConnections } from "wagmi";
 import { Panel } from "@/components/ui/Panel";
-import { CHAINS_BY_ID, DEFAULT_ACTIVE_CHAIN_ID } from "@/lib/networks/registry";
-import { getActiveChainId, subscribeWorkspace } from "@/lib/state/workspace";
+import { CHAINS_BY_ID } from "@/lib/networks/registry";
 
 export function RequirementGate({ children }: { children: ReactNode }) {
     const connections = useConnections();
-    const walletChainId = useChainId();
+
+    // Get the actual chain ID from the connection (not from wagmi config)
+    // This allows us to detect unsupported chains that aren't in wagmi config
+    const walletChainId = useMemo(() => {
+        const first = connections?.[0];
+        return first?.chainId;
+    }, [connections]);
 
     const isConnected = useMemo(() => {
         const first = connections?.[0];
         const acct = first?.accounts?.[0];
         return typeof acct === "string" && acct.length > 0;
     }, [connections]);
-
-    const activeChainId = useSyncExternalStore(
-        subscribeWorkspace,
-        getActiveChainId,
-        () => DEFAULT_ACTIVE_CHAIN_ID
-    );
 
     if (!isConnected) {
         return (
@@ -30,21 +29,24 @@ export function RequirementGate({ children }: { children: ReactNode }) {
         );
     }
 
-    if (walletChainId !== activeChainId) {
-        const active = CHAINS_BY_ID[activeChainId];
-        const connected = CHAINS_BY_ID[walletChainId];
-
+    // Only warn if wallet is on an unsupported network
+    // (The app now auto-syncs to wallet's chain via useSyncActiveChain hook)
+    const isUnsupported = !CHAINS_BY_ID[walletChainId];
+    if (isUnsupported) {
         return (
-            <Panel title="Network mismatch" description="Connected network does not match the active network.">
+            <Panel title="Unsupported network" description="Your wallet is connected to a network that is not supported by Classic OS.">
                 <div className="text-sm text-white/65">
-                    Connected:{" "}
-                    <span className="text-white/85">{connected?.name ?? `Chain ${walletChainId}`}</span>
-                    <span className="text-white/35"> • </span>
-                    Active:{" "}
-                    <span className="text-white/85">{active?.name ?? `Chain ${activeChainId}`}</span>
+                    Connected to:{" "}
+                    <span className="text-white/85">Chain {walletChainId}</span>
                 </div>
                 <div className="mt-2 text-sm text-white/55">
-                    Switch your wallet to the active network to proceed.
+                    Switch your wallet to a supported network:
+                </div>
+                <div className="mt-3 space-y-1 text-xs text-white/65">
+                    <div>• Ethereum Classic (Chain 61)</div>
+                    <div>• Ethereum (Chain 1)</div>
+                    <div>• Mordor Testnet (Chain 63)</div>
+                    <div>• Sepolia Testnet (Chain 11155111)</div>
                 </div>
             </Panel>
         );

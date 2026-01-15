@@ -5,7 +5,9 @@ import { useChainId, useConnections } from "wagmi";
 import { formatUnits } from "viem";
 import { useTokenBalances } from "@/hooks/useTokenBalances";
 import { UpdateIndicator } from "@/components/portfolio/UpdateIndicator";
+import { TokenLogo } from "@/components/portfolio/TokenLogo";
 import { CHAINS_BY_ID } from "@/lib/networks/registry";
+import { formatTokenBalance } from "@/lib/utils/format";
 
 /**
  * Token Balances Display Component
@@ -91,16 +93,16 @@ export function TokenBalancesDisplay() {
             {tokenBalances.map((tokenBalance) => {
                 const { token, balance } = tokenBalance;
                 const formattedBalance = formatUnits(balance, token.decimals);
-                const displayBalance = parseFloat(formattedBalance).toFixed(
-                    token.decimals === 0 ? 0 : Math.min(token.decimals, 6)
-                );
+                const displayBalance = formatTokenBalance(formattedBalance);
 
                 return (
                     <div
                         key={`${token.address}-${token.chainId}`}
                         className="rounded-xl border border-white/10 bg-black/20 p-4"
                     >
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <TokenLogo logoURI={token.logoURI} symbol={token.symbol} size="md" />
+
                             <div className="min-w-0 flex-1">
                                 <div className="flex items-baseline gap-2">
                                     <div className="text-sm font-medium text-white/90">

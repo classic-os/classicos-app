@@ -4,7 +4,11 @@ import { useMemo } from "react";
 import { useChainId, useConnections } from "wagmi";
 import { formatEther } from "viem";
 import { useNativeBalance } from "@/hooks/useNativeBalance";
+import { TokenLogo } from "@/components/portfolio/TokenLogo";
 import { CHAINS_BY_ID } from "@/lib/networks/registry";
+import { formatTokenBalance } from "@/lib/utils/format";
+
+const ETC_LOGO_URL = "https://raw.githubusercontent.com/etcswap/token-list/refs/heads/main/assets/ethereum-classic.png";
 
 /**
  * Portfolio Hero Section - Large prominent balance display.
@@ -65,7 +69,7 @@ export function PortfolioHero() {
 
     // Format balance
     const formattedBalance = balance !== undefined ? formatEther(balance) : "0";
-    const displayBalance = parseFloat(formattedBalance).toFixed(4);
+    const displayBalance = formatTokenBalance(formattedBalance);
     const isZero = balance === BigInt(0);
 
     return (
@@ -80,15 +84,18 @@ export function PortfolioHero() {
                 </div>
 
                 {/* Main Balance Display */}
-                <div className="space-y-2">
-                    <div className="text-5xl font-bold text-white/95">
-                        {displayBalance} {nativeSymbol}
-                    </div>
-                    {isZero && (
-                        <div className="text-sm text-white/45">
-                            No {nativeSymbol} in this wallet
+                <div className="flex items-center gap-4">
+                    <TokenLogo logoURI={ETC_LOGO_URL} symbol={nativeSymbol} size="lg" />
+                    <div className="space-y-2">
+                        <div className="text-5xl font-bold text-white/95">
+                            {displayBalance} {nativeSymbol}
                         </div>
-                    )}
+                        {isZero && (
+                            <div className="text-sm text-white/45">
+                                No {nativeSymbol} in this wallet
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* Quick Stats */}

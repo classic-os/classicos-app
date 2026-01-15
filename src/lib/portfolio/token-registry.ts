@@ -9,6 +9,7 @@ export type TokenInfo = {
     readonly name: string;
     readonly decimals: number;
     readonly chainId: number;
+    readonly logoURI?: string;
 };
 
 /**
@@ -17,6 +18,13 @@ export type TokenInfo = {
  * Source: ETCswap V3 Token List (v0.14.0, June 2025)
  * https://github.com/etcswap/tokens/blob/main/ethereum-classic/all.json
  */
+
+/**
+ * Generate logo URI for a token from ETCswap token list
+ */
+function tokenLogoURI(chainId: number, address: Address): string {
+    return `https://raw.githubusercontent.com/etcswap/tokens/main/ethereum-classic/chains/${chainId}/${address}/logo.png`;
+}
 
 /**
  * Ethereum Classic Mainnet (Chain ID 61) Token Registry
@@ -28,6 +36,7 @@ export const ETC_MAINNET_TOKENS: readonly TokenInfo[] = [
         name: "Wrapped ETC",
         decimals: 18,
         chainId: 61,
+        logoURI: tokenLogoURI(61, "0x1953cab0E5bFa6D4a9BaD6E05fD46C1CC6527a5a"),
     },
     {
         address: "0xDE093684c796204224BC081f937aa059D903c52a",
@@ -35,6 +44,7 @@ export const ETC_MAINNET_TOKENS: readonly TokenInfo[] = [
         name: "Classic USD",
         decimals: 6,
         chainId: 61,
+        logoURI: tokenLogoURI(61, "0xDE093684c796204224BC081f937aa059D903c52a"),
     },
     {
         address: "0xc0364FB5498c17088A5B1d98F6FB3dB2Df9866a9",
@@ -42,6 +52,7 @@ export const ETC_MAINNET_TOKENS: readonly TokenInfo[] = [
         name: "Eco",
         decimals: 18,
         chainId: 61,
+        logoURI: tokenLogoURI(61, "0xc0364FB5498c17088A5B1d98F6FB3dB2Df9866a9"),
     },
     {
         address: "0xAccc4ae3a58E8bC3115E67eE67852044069F154A",
@@ -49,6 +60,7 @@ export const ETC_MAINNET_TOKENS: readonly TokenInfo[] = [
         name: "Cypher by ETCMC",
         decimals: 18,
         chainId: 61,
+        logoURI: tokenLogoURI(61, "0xAccc4ae3a58E8bC3115E67eE67852044069F154A"),
     },
     {
         address: "0x6c3B413C461c42a88160Ed1B1B31d6f7b02a1C83",
@@ -56,6 +68,7 @@ export const ETC_MAINNET_TOKENS: readonly TokenInfo[] = [
         name: "ETCPOW by ETCMC",
         decimals: 18,
         chainId: 61,
+        logoURI: tokenLogoURI(61, "0x6c3B413C461c42a88160Ed1B1B31d6f7b02a1C83"),
     },
     {
         address: "0x271dc2DF1390a7b319CAE1711A454fa416D6A309",
@@ -63,6 +76,7 @@ export const ETC_MAINNET_TOKENS: readonly TokenInfo[] = [
         name: "BOB by TMWSTW",
         decimals: 0,
         chainId: 61,
+        logoURI: tokenLogoURI(61, "0x271dc2DF1390a7b319CAE1711A454fa416D6A309"),
     },
     {
         address: "0x152BAEFdc3b7E60985addF66FaB95e01089ba958",
@@ -70,6 +84,7 @@ export const ETC_MAINNET_TOKENS: readonly TokenInfo[] = [
         name: "GREASE by TMWSTW",
         decimals: 0,
         chainId: 61,
+        logoURI: tokenLogoURI(61, "0x152BAEFdc3b7E60985addF66FaB95e01089ba958"),
     },
     {
         address: "0x19b4343d272DA48779aB7A9a7436F95F63249871",
@@ -77,6 +92,7 @@ export const ETC_MAINNET_TOKENS: readonly TokenInfo[] = [
         name: "INK by TMWSTW",
         decimals: 0,
         chainId: 61,
+        logoURI: tokenLogoURI(61, "0x19b4343d272DA48779aB7A9a7436F95F63249871"),
     },
     {
         address: "0xa1Ccb330165cda264f35De7630De084e83d39134",
@@ -84,6 +100,7 @@ export const ETC_MAINNET_TOKENS: readonly TokenInfo[] = [
         name: "SLAG by TMWSTW",
         decimals: 0,
         chainId: 61,
+        logoURI: tokenLogoURI(61, "0xa1Ccb330165cda264f35De7630De084e83d39134"),
     },
     {
         address: "0xbf72BfEFA79957Fa944431f25e73a6aAEBC81798",
@@ -91,6 +108,7 @@ export const ETC_MAINNET_TOKENS: readonly TokenInfo[] = [
         name: "TMWSTW Profits",
         decimals: 0,
         chainId: 61,
+        logoURI: tokenLogoURI(61, "0xbf72BfEFA79957Fa944431f25e73a6aAEBC81798"),
     },
     {
         address: "0xbB2D194ABBac8834c833dcCd0ccb266670b0d3de",
@@ -98,6 +116,7 @@ export const ETC_MAINNET_TOKENS: readonly TokenInfo[] = [
         name: "2015 Relic: AyeAyeCoin",
         decimals: 0,
         chainId: 61,
+        logoURI: tokenLogoURI(61, "0xbB2D194ABBac8834c833dcCd0ccb266670b0d3de"),
     },
     {
         address: "0x80365F3f6d3C335C3f2b7D72cD7Fa8Eb56c933c9",
@@ -105,6 +124,7 @@ export const ETC_MAINNET_TOKENS: readonly TokenInfo[] = [
         name: "2015 Relic: bitcoin",
         decimals: 8,
         chainId: 61,
+        logoURI: tokenLogoURI(61, "0x80365F3f6d3C335C3f2b7D72cD7Fa8Eb56c933c9"),
     },
 ] as const;
 
@@ -118,6 +138,7 @@ export const MORDOR_TESTNET_TOKENS: readonly TokenInfo[] = [
         name: "Wrapped ETC",
         decimals: 18,
         chainId: 63,
+        logoURI: tokenLogoURI(63, "0x1953cab0E5bFa6D4a9BaD6E05fD46C1CC6527a5a"),
     },
     {
         address: "0xDE093684c796204224BC081f937aa059D903c52a",
@@ -125,6 +146,7 @@ export const MORDOR_TESTNET_TOKENS: readonly TokenInfo[] = [
         name: "Classic USD",
         decimals: 6,
         chainId: 63,
+        logoURI: tokenLogoURI(63, "0xDE093684c796204224BC081f937aa059D903c52a"),
     },
     {
         address: "0xD333787e69DbfC47E67C59441e392Eb530b3DC19",
@@ -132,6 +154,7 @@ export const MORDOR_TESTNET_TOKENS: readonly TokenInfo[] = [
         name: "USDC",
         decimals: 6,
         chainId: 63,
+        logoURI: tokenLogoURI(63, "0xD333787e69DbfC47E67C59441e392Eb530b3DC19"),
     },
     {
         address: "0xfC95e5e3f912823eE531687E2Df137940ef3BA2c",
@@ -139,6 +162,7 @@ export const MORDOR_TESTNET_TOKENS: readonly TokenInfo[] = [
         name: "Tether",
         decimals: 6,
         chainId: 63,
+        logoURI: tokenLogoURI(63, "0xfC95e5e3f912823eE531687E2Df137940ef3BA2c"),
     },
     {
         address: "0xbe147F327704d4F62dCA47172261585D7b12eEEC",
@@ -146,6 +170,7 @@ export const MORDOR_TESTNET_TOKENS: readonly TokenInfo[] = [
         name: "Wrapped Bitcoin",
         decimals: 8,
         chainId: 63,
+        logoURI: tokenLogoURI(63, "0xbe147F327704d4F62dCA47172261585D7b12eEEC"),
     },
 ] as const;
 
