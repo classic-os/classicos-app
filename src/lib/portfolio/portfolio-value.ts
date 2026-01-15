@@ -1,6 +1,9 @@
 import type { Address } from "viem";
 import type { ETCPriceData } from "@/lib/portfolio/price-adapter";
 import type { DerivedPrice } from "@/lib/portfolio/derived-prices";
+import type { ETCswapV2Position } from "@/lib/portfolio/adapters/etcswap-v2-positions";
+import type { ETCswapV3Position } from "@/lib/portfolio/adapters/etcswap-v3-positions";
+import { getTokenAmountsFromLiquidity, calculateV3PositionValue } from "@/lib/portfolio/v3-math";
 
 /**
  * Known token addresses for price derivation
@@ -184,54 +187,79 @@ export function calculateTokensUSDValue(
 }
 
 /**
- * Calculate total USD value for an array of LP positions
+ * Calculate total USD value for an array of LP positions (V2 and V3)
  *
- * @param positions - Array of LP positions with reserve data
- * @param lpTotalSupplies - Map of LP token address to total supply
- * @param lpBalances - Map of LP token address to user balance
+ * Handles both:
+ * - V2 positions: Use lpBalance, lpTotalSupply, and reserves
+ * - V3 positions: Use liquidity, tick range, and V3 math
+ *
+ * @param positions - Array of V2 and/or V3 LP positions
  * @param prices - ETC ecosystem prices
  * @param derivedPrices - Optional map of derived prices from LP pools
  * @returns Total USD value of all LP positions
  */
 export function calculatePositionsUSDValue(
-    positions: ReadonlyArray<{
-        readonly lpTokenAddress: Address;
-        readonly lpBalance: bigint;
-        readonly lpTotalSupply: bigint;
-        readonly token0: {
-            readonly address: Address;
-            readonly decimals: number;
-            readonly reserve: bigint;
-        };
-        readonly token1: {
-            readonly address: Address;
-            readonly decimals: number;
-            readonly reserve: bigint;
-        };
-    }>,
+    positions: ReadonlyArray<ETCswapV2Position | ETCswapV3Position>,
     prices: ETCPriceData,
     derivedPrices?: Map<string, DerivedPrice>
 ): number {
     let total = 0;
 
     for (const position of positions) {
-        // Calculate user's share of reserves
-        const shareRatio = Number(position.lpBalance) / Number(position.lpTotalSupply);
-        const userReserve0 = BigInt(Math.floor(Number(position.token0.reserve) * shareRatio));
-        const userReserve1 = BigInt(Math.floor(Number(position.token1.reserve) * shareRatio));
+        let value: number | null = null;
 
-        const value = calculateLPPositionUSDValue(
-            position.token0.address,
-            position.token0.decimals,
-            userReserve0,
-            position.token1.address,
-            position.token1.decimals,
-            userReserve1,
-            prices,
-            derivedPrices
-        );
+        // V2 Position
+        if (position.protocol === "etcswap-v2") {
+            // Calculate user's share of reserves
+            const shareRatio = Number(position.lpBalance) / Number(position.lpTotalSupply);
+            const userReserve0 = BigInt(Math.floor(Number(position.token0.reserve) * shareRatio));
+            const userReserve1 = BigInt(Math.floor(Number(position.token1.reserve) * shareRatio));
 
-        if (value !== null) {
+            value = calculateLPPositionUSDValue(
+                position.token0.address,
+                position.token0.decimals,
+                userReserve0,
+                position.token1.address,
+                position.token1.decimals,
+                userReserve1,
+                prices,
+                derivedPrices
+            );
+        }
+        // V3 Position
+        else if (position.protocol === "etcswap-v3") {
+            // Calculate token amounts from liquidity
+            const { amount0, amount1 } = getTokenAmountsFromLiquidity(
+                position.liquidity,
+                position.currentTick,
+                position.tickLower,
+                position.tickUpper,
+                position.token0.decimals,
+                position.token1.decimals
+            );
+
+            // Get token prices
+            const token0Price = calculateTokenUSDValue(
+                BigInt(Math.floor(amount0 * Math.pow(10, position.token0.decimals))),
+                position.token0.decimals,
+                position.token0.address,
+                prices,
+                derivedPrices
+            );
+
+            const token1Price = calculateTokenUSDValue(
+                BigInt(Math.floor(amount1 * Math.pow(10, position.token1.decimals))),
+                position.token1.decimals,
+                position.token1.address,
+                prices,
+                derivedPrices
+            );
+
+            // Calculate position value
+            value = calculateV3PositionValue(amount0, amount1, token0Price, token1Price);
+        }
+
+        if (value !== null && value > 0) {
             total += value;
         }
     }

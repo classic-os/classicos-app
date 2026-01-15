@@ -4,6 +4,7 @@ import { useMemo, useSyncExternalStore } from "react";
 import { useChainId, useConnections } from "wagmi";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useETCswapV2Positions } from "@/hooks/useETCswapV2Positions";
+import { useETCswapV3Positions } from "@/hooks/useETCswapV3Positions";
 import { useEnhancedPrices } from "@/hooks/useEnhancedPrices";
 import { PositionCard } from "@/components/portfolio/PositionCard";
 import { UpdateIndicator } from "@/components/portfolio/UpdateIndicator";
@@ -15,8 +16,11 @@ import { useExchangeRates } from "@/lib/currencies/useExchangeRates";
 export function PositionsPanel() {
     const connections = useConnections();
     const chainId = useChainId();
-    const { data: positions, isLoading, error, dataUpdatedAt, isFetching } =
-        useETCswapV2Positions();
+
+    // Fetch both V2 and V3 positions
+    const v2Query = useETCswapV2Positions();
+    const v3Query = useETCswapV3Positions();
+
     const { knownPrices: prices, derivedPrices } = useEnhancedPrices();
     const currency = useSyncExternalStore(subscribeWorkspace, getCurrency, getCurrency);
     const { data: exchangeRates } = useExchangeRates();
@@ -30,10 +34,30 @@ export function PositionsPanel() {
     const isConnected = Boolean(address);
     const chain = CHAINS_BY_ID[chainId];
     const isTestnet = chain?.testnet || false;
-    const positionCount = positions?.length || 0;
-    const positionCountLabel = positionCount > 0
-        ? `${positionCount} ${positionCount === 1 ? "Position" : "Positions"}${isTestnet ? " (Testnet)" : ""}`
-        : "Liquidity Positions";
+
+    // Combine V2 and V3 positions
+    const v2Positions = v2Query.data || [];
+    const v3Positions = v3Query.data || [];
+    const allPositions = [...v2Positions, ...v3Positions];
+
+    const isLoading = v2Query.isLoading || v3Query.isLoading;
+    const error = v2Query.error || v3Query.error;
+    const isFetching = v2Query.isFetching || v3Query.isFetching;
+    const dataUpdatedAt = Math.max(v2Query.dataUpdatedAt || 0, v3Query.dataUpdatedAt || 0);
+
+    const positionCount = allPositions.length;
+    const v2Count = v2Positions.length;
+    const v3Count = v3Positions.length;
+
+    // Build description showing position counts by protocol
+    let positionCountLabel = "ETCswap V2 & V3";
+    if (positionCount > 0) {
+        const parts: string[] = [];
+        if (v2Count > 0) parts.push(`V2: ${v2Count}`);
+        if (v3Count > 0) parts.push(`V3: ${v3Count}`);
+        positionCountLabel = parts.join(", ");
+        if (isTestnet) positionCountLabel += " (Testnet)";
+    }
 
     // State 1: Disconnected
     if (!isConnected || !address) {
@@ -87,7 +111,7 @@ export function PositionsPanel() {
     }
 
     // State 4: Empty (no positions)
-    if (!positions || positions.length === 0) {
+    if (allPositions.length === 0) {
         return (
             <CollapsiblePanel
                 title="Liquidity Positions"
@@ -96,7 +120,7 @@ export function PositionsPanel() {
             >
                 <EmptyState
                     title="No active positions"
-                    body="You don't have any liquidity provider positions on ETCswap V2 or other supported protocols. LP positions allow you to earn trading fees by providing liquidity to token pairs."
+                    body="You don't have any liquidity provider positions on ETCswap V2 or V3. LP positions allow you to earn trading fees by providing liquidity to token pairs."
                 />
             </CollapsiblePanel>
         );
@@ -117,17 +141,22 @@ export function PositionsPanel() {
                     </div>
                 )}
 
-                {positions.map((position) => (
-                    <PositionCard
-                        key={position.lpTokenAddress}
-                        position={position}
-                        chainId={chainId}
-                        prices={prices}
-                        derivedPrices={derivedPrices}
-                        currency={currency}
-                        exchangeRates={exchangeRates}
-                    />
-                ))}
+                {allPositions.map((position) => {
+                    const key = position.protocol === "etcswap-v2"
+                        ? position.lpTokenAddress
+                        : `v3-${position.tokenId}`;
+                    return (
+                        <PositionCard
+                            key={key}
+                            position={position}
+                            chainId={chainId}
+                            prices={prices}
+                            derivedPrices={derivedPrices}
+                            currency={currency}
+                            exchangeRates={exchangeRates}
+                        />
+                    );
+                })}
             </div>
         </CollapsiblePanel>
     );

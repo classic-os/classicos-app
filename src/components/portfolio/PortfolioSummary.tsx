@@ -20,6 +20,7 @@ import { CopyButton } from "@/components/ui/CopyButton";
 import { RefreshButton } from "@/components/ui/RefreshButton";
 import { useTokenBalances } from "@/hooks/useTokenBalances";
 import { useETCswapV2Positions } from "@/hooks/useETCswapV2Positions";
+import { useETCswapV3Positions } from "@/hooks/useETCswapV3Positions";
 import { usePriceHistory } from "@/hooks/usePriceHistory";
 import { useNativeBalance } from "@/hooks/useNativeBalance";
 import { getCurrency, subscribeWorkspace } from "@/lib/state/workspace";
@@ -41,9 +42,13 @@ export function PortfolioSummary() {
     const { data: prices, isLoading: isPriceLoading, refetch: refetchPrices } = useETCEcosystemPrices();
     const { derivedPrices } = useEnhancedPrices();
     const { data: tokenBalances, refetch: refetchTokens } = useTokenBalances();
-    const { data: positions, refetch: refetchPositions } = useETCswapV2Positions();
+    const { data: v2Positions, refetch: refetchV2Positions } = useETCswapV2Positions();
+    const { data: v3Positions, refetch: refetchV3Positions } = useETCswapV3Positions();
     const { refetch: refetchPriceHistory } = usePriceHistory("ethereum-classic");
     const { refetch: refetchBalance } = useNativeBalance();
+
+    // Combine V2 and V3 positions
+    const allPositions = [...(v2Positions || []), ...(v3Positions || [])];
     const ecosystem = getEcosystem(chainId);
     const chain = CHAINS_BY_ID[chainId];
     const nativeSymbol = chain?.nativeCurrency?.symbol || "ETH";
@@ -58,7 +63,8 @@ export function PortfolioSummary() {
         await Promise.all([
             refetchPrices(),
             refetchTokens(),
-            refetchPositions(),
+            refetchV2Positions(),
+            refetchV3Positions(),
             refetchPriceHistory(),
             refetchBalance(),
         ]);
@@ -163,9 +169,10 @@ export function PortfolioSummary() {
           )
         : 0;
 
-    // Calculate USD value for LP positions (known + derived prices)
-    const positionsUSDValue = prices && positions
-        ? calculatePositionsUSDValue(positions, prices, derivedPrices)
+    // Calculate USD value for LP positions (V2 only for now - V3 math needs fixing)
+    // TODO: Include V3 positions once V3 math is corrected
+    const positionsUSDValue = prices && v2Positions && v2Positions.length > 0
+        ? calculatePositionsUSDValue(v2Positions, prices, derivedPrices)
         : 0;
 
     // Total portfolio value across all asset types
