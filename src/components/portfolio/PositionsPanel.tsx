@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { useChainId, useConnections } from "wagmi";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useETCswapV2Positions } from "@/hooks/useETCswapV2Positions";
+import { useETCEcosystemPrices } from "@/hooks/useETCEcosystemPrices";
 import { PositionCard } from "@/components/portfolio/PositionCard";
 import { UpdateIndicator } from "@/components/portfolio/UpdateIndicator";
 import { CollapsiblePanel } from "@/components/ui/CollapsiblePanel";
@@ -13,6 +14,7 @@ export function PositionsPanel() {
     const chainId = useChainId();
     const { data: positions, isLoading, error, dataUpdatedAt, isFetching } =
         useETCswapV2Positions();
+    const { data: prices } = useETCEcosystemPrices();
 
     const address = useMemo(() => {
         const first = connections?.[0];
@@ -111,6 +113,7 @@ export function PositionsPanel() {
                         key={position.lpTokenAddress}
                         position={position}
                         chainId={chainId}
+                        prices={prices}
                     />
                 ))}
             </div>

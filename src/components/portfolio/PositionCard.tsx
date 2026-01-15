@@ -1,21 +1,25 @@
 import { formatUnits } from "viem";
 import type { ETCswapV2Position } from "@/lib/portfolio/adapters/etcswap-v2-positions";
+import type { ETCPriceData } from "@/lib/portfolio/price-adapter";
 import { ProtocolBadge } from "@/components/portfolio/ProtocolBadge";
 import { ETCSWAP_V2_METADATA } from "@/lib/protocols/etcswap-contracts";
 import { formatTokenBalance, formatNumber } from "@/lib/utils/format";
+import { formatUSDValue } from "@/lib/portfolio/portfolio-value";
+import { estimateAPY, calculatePositionValueUSD } from "@/lib/portfolio/lp-apy";
 
 type PositionCardProps = {
     position: ETCswapV2Position;
     chainId: number;
+    prices?: ETCPriceData;
 };
 
 /**
  * Position Card Component
  *
- * Displays a single LP position with pool details, reserves, and share percentage.
+ * Displays a single LP position with pool details, reserves, share percentage, and APY estimate.
  * Follows 2025 DeFi Saver pattern with protocol badge and pool metrics.
  */
-export function PositionCard({ position, chainId }: PositionCardProps) {
+export function PositionCard({ position, chainId, prices }: PositionCardProps) {
     const { token0, token1, lpBalance, lpTotalSupply, poolShare } = position;
 
     // Format reserves
@@ -38,6 +42,10 @@ export function PositionCard({ position, chainId }: PositionCardProps) {
         chainId === 63
             ? ETCSWAP_V2_METADATA.url.mordor
             : ETCSWAP_V2_METADATA.url.mainnet;
+
+    // Calculate position value and APY estimate
+    const positionValueUSD = prices ? calculatePositionValueUSD(position, prices) : null;
+    const apyEstimate = prices ? estimateAPY(position, prices) : null;
 
     return (
         <div className="rounded-xl border border-white/10 bg-black/20 p-4">
@@ -69,6 +77,34 @@ export function PositionCard({ position, chainId }: PositionCardProps) {
                     </svg>
                 </a>
             </div>
+
+            {/* Position Value and APY */}
+            {positionValueUSD !== null && apyEstimate !== null && (
+                <div className="mb-3 rounded-lg border border-green-500/20 bg-green-500/5 p-3">
+                    <div className="mb-2 flex items-baseline justify-between">
+                        <span className="text-xs text-white/70">Position Value</span>
+                        <span className="font-mono text-lg font-semibold text-white/95">
+                            {formatUSDValue(positionValueUSD)}
+                        </span>
+                    </div>
+                    {apyEstimate.method !== "unavailable" && apyEstimate.apy > 0 && (
+                        <div className="flex items-baseline justify-between border-t border-white/10 pt-2">
+                            <div className="flex items-center gap-1.5">
+                                <span className="text-xs text-white/70">Est. APY</span>
+                                <span
+                                    className="text-xs text-white/45"
+                                    title={`Confidence: ${apyEstimate.confidence}\nMethod: ${apyEstimate.method}`}
+                                >
+                                    ⓘ
+                                </span>
+                            </div>
+                            <span className="font-mono text-sm font-medium text-green-400">
+                                {formatNumber(apyEstimate.apy, 2, 0)}%
+                            </span>
+                        </div>
+                    )}
+                </div>
+            )}
 
             {/* Pool share indicator */}
             <div className="mb-3">
