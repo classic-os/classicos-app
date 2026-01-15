@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { RequirementGate } from "@/components/ui/RequirementGate";
 
 import { PortfolioHero } from "@/components/portfolio/PortfolioHero";
+import { PortfolioSummary } from "@/components/portfolio/PortfolioSummary";
 import { BalancesPanel } from "@/components/portfolio/BalancesPanel";
 import { PositionsPanel } from "@/components/portfolio/PositionsPanel";
 import { ActivityPanel } from "@/components/portfolio/ActivityPanel";
@@ -62,6 +63,11 @@ export default function PortfolioPage() {
 
             {/* Hero Section - Prominent balance display */}
             <PortfolioHero />
+
+            {/* Portfolio Summary Card */}
+            <RequirementGate>
+                <PortfolioSummary />
+            </RequirementGate>
 
             {/* Assets Breakdown */}
             <RequirementGate>
