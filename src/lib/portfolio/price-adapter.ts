@@ -41,7 +41,7 @@ export async function fetchETCEcosystemPrices(): Promise<ETCPriceData> {
     // Use Next.js API route to avoid CORS issues
     // Request 24h price change data in addition to current prices
     const url =
-        "/api/prices?ids=ethereum-classic,classic-usd,wrapped-etc-2&vs_currencies=usd&include_last_updated_at=true&include_24hr_change=true";
+        "/api/prices?ids=ethereum-classic,classic-usd,wrapped-ether&vs_currencies=usd&include_last_updated_at=true&include_24hr_change=true";
 
     const response = await fetch(url, {
         method: "GET",
@@ -56,7 +56,7 @@ export async function fetchETCEcosystemPrices(): Promise<ETCPriceData> {
 
     const data = await response.json();
 
-    // Validate response structure for all three assets
+    // Validate response structure for required assets (ETC and USC)
     if (
         !data ||
         !data["ethereum-classic"] ||
@@ -72,14 +72,12 @@ export async function fetchETCEcosystemPrices(): Promise<ETCPriceData> {
         throw new Error("Invalid USC price data response from CoinGecko");
     }
 
-    if (
-        !data["wrapped-etc-2"] ||
-        typeof data["wrapped-etc-2"].usd !== "number"
-    ) {
-        throw new Error("Invalid WETC price data response from CoinGecko");
-    }
-
     const now = Date.now() / 1000;
+
+    // WETC price is optional - if unavailable, use ETC price as fallback
+    // (WETC should track ETC 1:1 due to wrapping mechanism)
+    const wetcData = data["wrapped-ether"];
+    const hasWETCPrice = wetcData && typeof wetcData.usd === "number";
 
     return {
         etc: {
@@ -93,9 +91,10 @@ export async function fetchETCEcosystemPrices(): Promise<ETCPriceData> {
             change24h: data["classic-usd"].usd_24h_change,
         },
         wetc: {
-            price: data["wrapped-etc-2"].usd,
-            lastUpdated: data["wrapped-etc-2"].last_updated_at || now,
-            change24h: data["wrapped-etc-2"].usd_24h_change,
+            // Fallback to ETC price if WETC price unavailable
+            price: hasWETCPrice ? wetcData.usd : data["ethereum-classic"].usd,
+            lastUpdated: hasWETCPrice ? (wetcData.last_updated_at || now) : data["ethereum-classic"].last_updated_at || now,
+            change24h: hasWETCPrice ? wetcData.usd_24h_change : data["ethereum-classic"].usd_24h_change,
         },
         lastUpdated: now,
     };
