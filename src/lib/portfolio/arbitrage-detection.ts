@@ -48,7 +48,7 @@ export type ArbitrageOpportunity = {
     /** DEX spot price (from pool ratio or V3 tick) */
     dexPrice: number;
 
-    /** CoinGecko fair market value (CEX-based) */
+    /** CoinGecko fair market value (CEX-based or fiat-backed) */
     fmvPrice: number;
 
     /** Percentage deviation: ((dexPrice - fmvPrice) / fmvPrice) * 100 */
@@ -56,6 +56,9 @@ export type ArbitrageOpportunity = {
 
     /** Opportunity type */
     type: "premium" | "discount"; // premium = sell on DEX, buy on CEX; discount = buy on DEX, sell on CEX
+
+    /** Arbitrage mechanism (CEX trading or fiat mint/redeem) */
+    mechanism: "cex-trade" | "fiat-backed"; // cex-trade = CEX arbitrage, fiat-backed = mint/redeem via platform
 
     /** Price source description */
     source: string;
@@ -231,6 +234,11 @@ export function detectArbitrageOpportunities(
 
         // Only report if deviation exceeds threshold
         if (Math.abs(deviationPercent) >= thresholdPercent) {
+            // Determine arbitrage mechanism
+            // USC is fiat-backed (mint/redeem via Brale at 1:1 with USD/USDC/USDP)
+            // WETC uses CEX trading (buy/sell on centralized exchanges)
+            const mechanism = normalized === KNOWN_TOKENS.USC ? "fiat-backed" : "cex-trade";
+
             opportunities.push({
                 tokenAddress: token.address,
                 tokenSymbol: token.symbol,
@@ -238,6 +246,7 @@ export function detectArbitrageOpportunities(
                 fmvPrice,
                 deviationPercent,
                 type: deviationPercent > 0 ? "premium" : "discount",
+                mechanism,
                 source,
             });
         }

@@ -236,37 +236,42 @@ function V2PositionCard({ position, chainId, prices, derivedPrices, currency, ex
                         </span>
                     </div>
                     <div className="space-y-2">
-                        {arbitrageOpportunities.map((opp) => (
+                        {arbitrageOpportunities.map((opp) => {
+                            // Color represents DEX action (first action in sequence):
+                            // Green = Buy DEX (accumulation)
+                            // Red = Sell DEX (distribution)
+                            //
+                            // Premium (DEX > FMV): Sell DEX → RED
+                            // Discount (DEX < FMV): Buy DEX → GREEN
+                            const isGreen = opp.type === "discount"; // discount = buy opportunity
+                            const borderColor = isGreen ? "border-green-500/30" : "border-red-500/30";
+                            const bgColor = isGreen ? "bg-green-500/10" : "bg-red-500/10";
+                            const textColor = isGreen ? "text-green-400" : "text-red-400";
+                            const badgeBg = isGreen ? "bg-green-500/20" : "bg-red-500/20";
+
+                            return (
                             <div
                                 key={opp.tokenAddress}
-                                className={`rounded-lg border ${
-                                    opp.type === "premium"
-                                        ? "border-green-500/30 bg-green-500/10"
-                                        : "border-red-500/30 bg-red-500/10"
-                                } p-2`}
+                                className={`rounded-lg border ${borderColor} ${bgColor} p-2`}
                             >
                                 <div className="mb-1 flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                         <span className="text-sm font-medium text-white/90">
                                             {opp.tokenSymbol}
                                         </span>
-                                        <span
-                                            className={`text-xs font-medium ${
-                                                opp.type === "premium" ? "text-green-400" : "text-red-400"
-                                            }`}
-                                        >
+                                        <span className={`text-xs font-medium ${textColor}`}>
                                             {opp.deviationPercent > 0 ? "+" : ""}
                                             {opp.deviationPercent.toFixed(2)}%
                                         </span>
                                     </div>
-                                    <div
-                                        className={`rounded px-1.5 py-0.5 text-xs font-medium ${
-                                            opp.type === "premium"
-                                                ? "bg-green-500/20 text-green-400"
-                                                : "bg-red-500/20 text-red-400"
-                                        }`}
-                                    >
-                                        {opp.type === "premium" ? "Sell DEX, Buy CEX" : "Buy DEX, Sell CEX"}
+                                    <div className={`rounded px-1.5 py-0.5 text-xs font-medium ${badgeBg} ${textColor}`}>
+                                        {opp.mechanism === "fiat-backed"
+                                            ? opp.type === "premium"
+                                                ? "Sell DEX, Redeem Brale"
+                                                : "Buy DEX, Redeem Brale"
+                                            : opp.type === "premium"
+                                            ? "Sell DEX, Buy CEX"
+                                            : "Buy DEX, Sell CEX"}
                                     </div>
                                 </div>
                                 <div className="space-y-1 text-xs">
@@ -277,14 +282,17 @@ function V2PositionCard({ position, chainId, prices, derivedPrices, currency, ex
                                         </span>
                                     </div>
                                     <div className="flex items-baseline justify-between text-white/70">
-                                        <span>CoinGecko FMV (CEX)</span>
+                                        <span>
+                                            {opp.mechanism === "fiat-backed" ? "Brale FMV (1:1 USD)" : "CoinGecko FMV (CEX)"}
+                                        </span>
                                         <span className="font-mono text-white/90">
                                             {formatCurrencyValue(opp.fmvPrice, currency, exchangeRates)}
                                         </span>
                                     </div>
                                 </div>
                             </div>
-                        ))}
+                            );
+                        })}
                     </div>
                     <div className="mt-2 text-xs text-white/50">
                         Price deviations reflect market inefficiencies between DEX and CEX liquidity.
@@ -655,37 +663,42 @@ function V3PositionCard({ position, chainId, prices, derivedPrices, currency, ex
                         </span>
                     </div>
                     <div className="space-y-2">
-                        {arbitrageOpportunities.map((opp) => (
+                        {arbitrageOpportunities.map((opp) => {
+                            // Color represents DEX action (first action in sequence):
+                            // Green = Buy DEX (accumulation)
+                            // Red = Sell DEX (distribution)
+                            //
+                            // Premium (DEX > FMV): Sell DEX → RED
+                            // Discount (DEX < FMV): Buy DEX → GREEN
+                            const isGreen = opp.type === "discount"; // discount = buy opportunity
+                            const borderColor = isGreen ? "border-green-500/30" : "border-red-500/30";
+                            const bgColor = isGreen ? "bg-green-500/10" : "bg-red-500/10";
+                            const textColor = isGreen ? "text-green-400" : "text-red-400";
+                            const badgeBg = isGreen ? "bg-green-500/20" : "bg-red-500/20";
+
+                            return (
                             <div
                                 key={opp.tokenAddress}
-                                className={`rounded-lg border ${
-                                    opp.type === "premium"
-                                        ? "border-green-500/30 bg-green-500/10"
-                                        : "border-red-500/30 bg-red-500/10"
-                                } p-2`}
+                                className={`rounded-lg border ${borderColor} ${bgColor} p-2`}
                             >
                                 <div className="mb-1 flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                         <span className="text-sm font-medium text-white/90">
                                             {opp.tokenSymbol}
                                         </span>
-                                        <span
-                                            className={`text-xs font-medium ${
-                                                opp.type === "premium" ? "text-green-400" : "text-red-400"
-                                            }`}
-                                        >
+                                        <span className={`text-xs font-medium ${textColor}`}>
                                             {opp.deviationPercent > 0 ? "+" : ""}
                                             {opp.deviationPercent.toFixed(2)}%
                                         </span>
                                     </div>
-                                    <div
-                                        className={`rounded px-1.5 py-0.5 text-xs font-medium ${
-                                            opp.type === "premium"
-                                                ? "bg-green-500/20 text-green-400"
-                                                : "bg-red-500/20 text-red-400"
-                                        }`}
-                                    >
-                                        {opp.type === "premium" ? "Sell DEX, Buy CEX" : "Buy DEX, Sell CEX"}
+                                    <div className={`rounded px-1.5 py-0.5 text-xs font-medium ${badgeBg} ${textColor}`}>
+                                        {opp.mechanism === "fiat-backed"
+                                            ? opp.type === "premium"
+                                                ? "Sell DEX, Redeem Brale"
+                                                : "Buy DEX, Redeem Brale"
+                                            : opp.type === "premium"
+                                            ? "Sell DEX, Buy CEX"
+                                            : "Buy DEX, Sell CEX"}
                                     </div>
                                 </div>
                                 <div className="space-y-1 text-xs">
@@ -696,14 +709,17 @@ function V3PositionCard({ position, chainId, prices, derivedPrices, currency, ex
                                         </span>
                                     </div>
                                     <div className="flex items-baseline justify-between text-white/70">
-                                        <span>CoinGecko FMV (CEX)</span>
+                                        <span>
+                                            {opp.mechanism === "fiat-backed" ? "Brale FMV (1:1 USD)" : "CoinGecko FMV (CEX)"}
+                                        </span>
                                         <span className="font-mono text-white/90">
                                             {formatCurrencyValue(opp.fmvPrice, currency, exchangeRates)}
                                         </span>
                                     </div>
                                 </div>
                             </div>
-                        ))}
+                            );
+                        })}
                     </div>
                     <div className="mt-2 text-xs text-white/50">
                         Price deviations reflect market inefficiencies between DEX and CEX liquidity.
