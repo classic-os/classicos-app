@@ -2,11 +2,11 @@
 
 ## Executive Summary
 
-Phase 1 delivery exceeded initial scope expectations, evolving from basic read-only portfolio view (Phase 1.1) to a comprehensive DeFi observation platform with derived price discovery (Phase 1.2).
+Phase 1 delivery exceeded initial scope expectations, evolving from basic read-only portfolio view (Phase 1.1) to a comprehensive DeFi observation platform with derived price discovery (Phase 1.2) and finally to a multi-currency platform with V3 position tracking and arbitrage detection (Phase 1.3).
 
-**Status:** ✅ Complete (Phase 1.1 + 1.2)
+**Status:** ✅ Complete (Phase 1.1 + 1.2 + 1.3)
 **Timeline:** January 6-15, 2026
-**Total Implementation:** ~20 hours (original estimate: 8-12 hours)
+**Total Implementation:** ~28 hours (original estimate: 8-12 hours)
 
 ## What Changed: Scope Evolution
 
@@ -36,7 +36,16 @@ Phase 1.2 added breakthrough features:
 - **Explorer links** using `/token/` endpoint for better UX
 - **"Manage" buttons** linking directly to ETCswap for liquidity management
 
-**Why the expansion?** Real-world usage revealed that quantity-only tracking wasn't sufficient. Users needed USD values and price transparency. The derived price system emerged as a solution for testnet development and ecosystem token pricing without relying on external APIs.
+Phase 1.3 added advanced DeFi features:
+- **Multi-fiat currency support** (USD, EUR, GBP, JPY, CNY, KRW, INR) with exchange rate API
+- **ETCswap V3 concentrated liquidity positions** with NFT-based tracking
+- **V3 position value calculations** using Q64.96 fixed-point arithmetic
+- **Arbitrage opportunity detection** comparing DEX vs CEX/FMV prices
+- **Terminal-style arbitrage alerts** with actionable links to DEX and CEX platforms
+- **V3 APY calculations** with concentration factor and in-range probability
+- **Currency selector** with localStorage persistence
+
+**Why the expansion?** Real-world usage revealed that quantity-only tracking wasn't sufficient. Users needed USD values and price transparency. The derived price system emerged as a solution for testnet development and ecosystem token pricing without relying on external APIs. Phase 1.3 expanded further to support international users (multi-fiat), V3 positions (the future of DEX liquidity), and arbitrage detection (capital efficiency optimization).
 
 ## Phase 1.1: Core Portfolio Read-Only
 
@@ -240,6 +249,223 @@ Right column - Pool Context:
 - Purple/cyan horizontal bar chart
 - Warning: "⚠ Ratio shifted from 50/50 deposit"
 - Helps users understand impermanent loss
+
+## Phase 1.3: Advanced DeFi Features
+
+### Multi-Fiat Currency Support
+
+**Problem:** International users need to view portfolio values in their local currency, not just USD.
+
+**Solution:** Integrated exchange rate API with multi-currency selector and conversion utilities.
+
+#### Implementation
+**Files:**
+- `src/lib/currencies/exchange-rates.ts` - Exchange rate fetcher using exchangerate-api.io
+- `src/lib/currencies/format.ts` - Currency formatting with locale-aware symbols
+- `src/lib/currencies/useExchangeRates.ts` - React Query hook with caching
+- `src/lib/state/workspace.ts` - Added currency preference to workspace state
+- `src/components/ui/CurrencySelector.tsx` - Currency selector dropdown
+
+**Supported Currencies:**
+- USD (United States Dollar) - base currency
+- EUR (Euro)
+- GBP (British Pound Sterling)
+- JPY (Japanese Yen)
+- CNY (Chinese Yuan)
+- KRW (South Korean Won)
+- INR (Indian Rupee)
+
+**Features:**
+- Real-time exchange rates from exchangerate-api.io
+- Automatic currency conversion for all USD values
+- Locale-aware formatting (e.g., "€1.234,56" for EUR)
+- Currency preference persists in localStorage
+- Multi-tab synchronization via workspace state
+- Compact selector in Portfolio Summary
+- 1-hour cache to reduce API calls
+
+**User Experience:**
+- Currency selector shows flag emoji + code (e.g., "🇪🇺 EUR")
+- All portfolio values automatically convert
+- Native balance, tokens, and LP positions show converted values
+- Consistent formatting throughout UI
+
+### ETCswap V3 Concentrated Liquidity Positions
+
+**Problem:** ETCswap V3 uses Uniswap V3-style concentrated liquidity (NFT-based positions with tick ranges), requiring different tracking and calculation methods than V2.
+
+**Solution:** Implemented V3 position discovery, Q64.96 fixed-point math, and tick-based price calculations.
+
+#### Implementation
+**Files:**
+- `src/lib/portfolio/adapters/etcswap-v3-positions.ts` - V3 position fetcher with NFT enumeration
+- `src/lib/portfolio/abis/uniswap-v3-nonfungible-position-manager.ts` - Position manager ABI
+- `src/lib/portfolio/abis/uniswap-v3-pool.ts` - Pool ABI for current tick and liquidity
+- `src/lib/portfolio/v3-math.ts` - Q64.96 fixed-point arithmetic for V3 calculations
+- `src/hooks/useETCswapV3Positions.ts` - React Query wrapper
+- `src/components/portfolio/PositionCard.tsx` - Updated to handle both V2 and V3 positions
+
+**V3 Position Discovery Strategy:**
+1. Query NonfungiblePositionManager contract
+2. Get user's position NFT IDs via `balanceOf()` and `tokenOfOwnerByIndex()`
+3. Fetch position metadata via `positions(tokenId)` call
+4. Query pool contracts for current tick and liquidity
+5. Filter out closed positions (zero liquidity)
+6. Calculate token amounts using tick math
+
+**V3-Specific Calculations:**
+
+**Q64.96 Fixed-Point Math:**
+- Uniswap V3 uses Q64.96 format for precise price representation
+- Formula: `price = 1.0001^tick * 2^96` (for token1/token0 ratio)
+- Implemented `tickToPrice()` for accurate price conversions
+- Handles tick ranges from -887272 to 887272
+- Prevents precision loss in liquidity calculations
+
+**Token Amount Calculation:**
+```typescript
+// Given: liquidity, currentTick, tickLower, tickUpper
+// Calculate: amount0 and amount1 in position
+
+if (currentTick < tickLower) {
+    // Position is entirely in token0
+    amount0 = liquidity / sqrt(priceLower)
+    amount1 = 0
+} else if (currentTick >= tickUpper) {
+    // Position is entirely in token1
+    amount0 = 0
+    amount1 = liquidity * sqrt(priceUpper)
+} else {
+    // Position is active (in range)
+    amount0 = liquidity * (1/sqrt(price) - 1/sqrt(priceUpper))
+    amount1 = liquidity * (sqrt(price) - sqrt(priceLower))
+}
+```
+
+**V3 Position Card Display:**
+- Shows tick range (e.g., "Tick Range: -887220 to 887220")
+- Displays fee tier (e.g., "Fee Tier: 0.30%")
+- Indicates "In Range" or "Out of Range" status with color coding
+- Shows min/max prices for the position's tick range
+- Calculates current price from pool's current tick
+- Displays liquidity value and token amounts
+- Links to ETCswap V3 interface for position management
+
+### Arbitrage Opportunity Detection
+
+**Problem:** Users need to identify price discrepancies between DEXs and CEX markets to capitalize on arbitrage opportunities.
+
+**Solution:** Implemented price deviation detection comparing DEX spot prices (from pool ratios and V3 ticks) against CoinGecko fair market value.
+
+#### Implementation
+**Files:**
+- `src/lib/portfolio/arbitrage-detection.ts` - Core arbitrage detection logic
+- Updated `src/components/portfolio/PositionCard.tsx` - Terminal-style arbitrage alerts
+
+**How It Works:**
+
+**Price Hierarchy:**
+1. **CEX Price (Source of Truth)** - ETC/USD from centralized exchanges via CoinGecko
+2. **CoinGecko FMV** - WETC and USC should equal ETC (1:1 peg)
+3. **DEX Spot Prices** - V2 pool ratios and V3 tick prices may diverge
+
+**Detection Logic:**
+```typescript
+// For each token in LP position:
+1. Get DEX spot price from pool ratio or V3 tick
+2. Get CoinGecko FMV price (CEX-based)
+3. Calculate deviation: ((dex - fmv) / fmv) * 100
+4. If |deviation| >= threshold (default 1%):
+   - Create arbitrage opportunity record
+   - Determine type: "premium" (sell DEX, buy CEX) or "discount" (buy DEX, sell CEX)
+   - Identify mechanism: "cex-trade" (for WETC) or "fiat-backed" (for USC)
+```
+
+**V3 Arbitrage Price Derivation:**
+- Convert V3 tick to price using Q64.96 math
+- Adjust for decimal differences between token0 and token1
+- Formula: `adjustedPrice = tickToPrice(tick) * 10^(decimals0 - decimals1)`
+- Derive USD prices using known FMV prices of paired tokens
+
+**Terminal-Style Arbitrage Alerts:**
+- Emerald green background (#10b981)
+- Monospace font for price display
+- Format: `▸ WETC trading 2.34% above FMV (sell DEX, buy CEX)`
+- Expandable details showing exact prices and sources
+- Actionable links:
+  - "Trade on ETCswap" for DEX operations
+  - "View on CoinGecko" for CEX price discovery
+  - "Mint/Redeem via Brale" for USC arbitrage
+
+**Arbitrage Types:**
+1. **Premium** - DEX price > FMV
+   - Action: Sell on DEX, buy on CEX
+   - Profit from DEX overvaluation
+
+2. **Discount** - DEX price < FMV
+   - Action: Buy on DEX, sell on CEX
+   - Profit from DEX undervaluation
+
+**Arbitrage Mechanisms:**
+1. **CEX Trade** (WETC)
+   - Buy/sell ETC on centralized exchanges
+   - Wrap/unwrap via WETC contract
+   - Trade on ETCswap DEX
+
+2. **Fiat-Backed** (USC)
+   - Mint USC via Brale (1:1 with USD/USDC)
+   - Trade on DEX if premium
+   - Redeem via Brale if discount
+
+### V3 APY Calculations
+
+**Problem:** V3 APY differs from V2 because fees only accrue when price is in range, and concentration affects capital efficiency.
+
+**Solution:** Implemented V3-specific APY estimation accounting for concentration factor and in-range probability.
+
+#### Implementation
+**Files:**
+- Updated `src/lib/portfolio/lp-apy.ts` - Added `estimateV3APY()` function
+
+**V3 APY Formula:**
+```typescript
+// Calculate concentration factor
+const fullRangeTicks = 887272 * 2  // Full range: -887272 to 887272
+const concentrationFactor = fullRangeTicks / tickRange
+// Example: 50% of full range = 2x concentration = 2x fees when in range
+
+// Estimate in-range probability based on tick range
+const inRangeProbability = calculateProbability(tickRange, currentTick)
+// Wider range = higher probability of staying in range
+
+// Calculate user's effective share of pool fees
+const effectiveShare = (concentrationFactor * inRangeProbability) / estimatedActiveLPs
+
+// Estimate daily fees
+const poolDailyFees = estimatedDailyVolume * (feeTier / 1000000)
+const userDailyFees = poolDailyFees * effectiveShare
+
+// Calculate APY
+const apy = (userDailyFees / positionValue) * 365 * 100
+```
+
+**In-Range Probability Heuristics:**
+- Near full range (≥80%): 95% probability
+- Wide range (≥40%): 80% probability
+- Medium range (≥20%): 60% probability
+- Narrow range (≥10%): 40% probability
+- Very narrow range (<10%): 20% probability
+- Out of range: Reduce probability by 50%
+
+**Confidence Levels:**
+- **High**: In range with wide position (≥30% of full range)
+- **Medium**: In range with narrow position or wide position slightly out of range
+- **Low**: Out of range or insufficient data
+
+**Display:**
+- Shows APY% with color coding (green for in-range, yellow for out-of-range)
+- Tooltip explains: "Estimated APY based on fee tier, concentration factor, and in-range probability"
+- Info icon (ⓘ) with confidence level
 
 ## Technical Implementation Details
 
@@ -463,6 +689,16 @@ type TokenInfo = {
 - Spot prices for all tokens
 - Better explorer links (`/token/` endpoint)
 
+### After Phase 1.3
+- **Multi-fiat currency support** (international users)
+- **V3 concentrated liquidity tracking** (NFT-based positions)
+- **Q64.96 fixed-point math** for accurate V3 calculations
+- **Arbitrage opportunity detection** (DEX vs CEX price discrepancies)
+- **Terminal-style arbitrage alerts** with actionable links
+- **V3 APY calculations** with concentration factor
+- **Currency selector** with localStorage persistence
+- Both V2 and V3 positions integrated in Portfolio Summary
+
 ### Key UX Principles Applied
 
 1. **Honest empty states:**
@@ -632,16 +868,15 @@ type TokenInfo = {
 
 ## Next Steps: Phase 2 and Beyond
 
-### Immediate Next: Multi-Fiat Currency Support
-**Goal:** Allow users to view portfolio in currencies other than USD
+### Immediate Next: Portfolio UX Enhancements
+**Goal:** Improve LP position display and transaction activity tracking
 
 **Scope:**
-- Add currency selector to portfolio summary
-- Integrate exchange rate API (or use CoinGecko multi-currency)
-- Update all USD display functions to accept currency parameter
-- Persist user's currency preference in workspace state
+- Collapsible LP positions with condensed cards (currently all expanded)
+- Update Liquidity Positions summary to show protocol badges (V2/V3) instead of counts
+- Enhance transaction activity section (currently just explorer link)
 
-**Estimated effort:** 2-3 hours
+**Estimated effort:** 4-6 hours
 
 ### Phase 2: Markets Module
 **Goal:** DEX aggregation + Brale stablecoin integration
@@ -690,17 +925,18 @@ type TokenInfo = {
 
 **Estimated effort:** 30-40 hours
 
-## Deferred Features (Not in Phase 1)
+## Deferred Features (Not in Phase 1.3)
 
-**Explicitly NOT included:**
-
-1. **ETCswap V3 positions:**
-   - Concentrated liquidity requires different UI
-   - NFT-based position tracking
+**Originally deferred but now completed in Phase 1.3:**
+1. ~~**ETCswap V3 positions**~~ - ✅ **COMPLETED** in Phase 1.3
+   - Concentrated liquidity with NFT tracking
+   - Q64.96 fixed-point math
    - Tick range visualization
-   - **Target:** Phase 2 or 3
+   - V3 APY calculations
 
-2. **ETCswap Launchpad integration:**
+**Still deferred:**
+
+1. **ETCswap Launchpad integration:**
    - Emerging markets and token launches
    - Vesting schedules
    - Claim mechanisms
@@ -735,7 +971,11 @@ type TokenInfo = {
 - ✅ Native balance displays correctly
 - ✅ ERC20 token balances display correctly
 - ✅ ETCswap V2 LP positions display correctly
+- ✅ ETCswap V3 LP positions display correctly (Phase 1.3)
 - ✅ USD values calculate accurately (known + derived prices)
+- ✅ Multi-fiat currency support (7 currencies) (Phase 1.3)
+- ✅ Arbitrage opportunity detection (Phase 1.3)
+- ✅ V3 APY calculations with concentration factor (Phase 1.3)
 - ✅ Activity panel provides working explorer links
 - ✅ Portfolio summary aggregates all data
 - ✅ All 5 UI states render correctly
@@ -763,38 +1003,46 @@ type TokenInfo = {
 
 ## Conclusion
 
-Phase 1 exceeded original scope by delivering not just a read-only portfolio viewer, but a **comprehensive DeFi observation platform** with breakthrough price discovery capabilities.
+Phase 1 exceeded original scope by delivering not just a read-only portfolio viewer, but a **comprehensive DeFi observation platform** with breakthrough price discovery, V3 position tracking, arbitrage detection, and multi-fiat currency support.
 
 **Key achievements:**
-1. ✅ Complete portfolio visibility (native + tokens + LP positions)
-2. ✅ USD valuations across all asset types
-3. ✅ Derived price system enables ecosystem token pricing
-4. ✅ Price source transparency builds user trust
-5. ✅ Enhanced LP position cards with asset composition
-6. ✅ Foundation ready for Deploy execution module
+1. ✅ Complete portfolio visibility (native + tokens + V2/V3 LP positions)
+2. ✅ Multi-fiat currency support (7 currencies) for international users
+3. ✅ ETCswap V3 concentrated liquidity tracking with Q64.96 math
+4. ✅ Arbitrage opportunity detection (DEX vs CEX price discrepancies)
+5. ✅ V3 APY calculations with concentration factor and in-range probability
+6. ✅ Derived price system enables ecosystem token pricing
+7. ✅ Price source transparency builds user trust
+8. ✅ Terminal-style arbitrage alerts with actionable links
+9. ✅ Enhanced LP position cards with asset composition
+10. ✅ Foundation ready for Deploy execution module
 
 **Architecture validated:**
 - Three-layer pattern scales well
 - Capability gating works as designed
 - Read-only by default maintained
 - No technical debt introduced
+- Q64.96 fixed-point math implemented correctly
 
 **Ready for Phase 2:**
 - Portfolio observation layer complete
+- V2 and V3 position tracking operational
+- Arbitrage detection provides capital efficiency insights
+- Multi-currency support enables global adoption
 - Price feed infrastructure operational
 - Derived price system enables ecosystem coverage
 - UI patterns established for consistency
 
 **Next focus:**
-1. Multi-fiat currency support (immediate)
+1. Portfolio UX enhancements (collapsible positions, protocol badges)
 2. Markets module (DEX aggregation + Brale)
 3. Deploy module (strategy execution)
 4. Mining OS (capital inflow integration)
 
-Phase 1 delivery positions Classic OS as a serious DeFi platform on Ethereum Classic with modern UX and transparent pricing mechanisms.
+Phase 1 delivery positions Classic OS as a serious DeFi platform on Ethereum Classic with modern UX, transparent pricing mechanisms, V3 support, arbitrage detection, and international currency support.
 
 ---
 
 **Report Date:** January 15, 2026
-**Phase Status:** ✅ Complete
-**Next Phase:** Multi-fiat currency support → Markets module
+**Phase Status:** ✅ Complete (Phase 1.1 + 1.2 + 1.3)
+**Next Phase:** Portfolio UX enhancements → Markets module
