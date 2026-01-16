@@ -1,0 +1,287 @@
+import type { Address } from "viem";
+import type { ETCPriceData } from "@/lib/portfolio/price-adapter";
+import type { DerivedPrice } from "@/lib/portfolio/derived-prices";
+import type { ETCswapV2Position } from "@/lib/portfolio/adapters/etcswap-v2-positions";
+import type { ETCswapV3Position } from "@/lib/portfolio/adapters/etcswap-v3-positions";
+import { getTokenAmountsFromLiquidity, calculateV3PositionValue } from "@/lib/portfolio/v3-math";
+
+/**
+ * Known token addresses for price derivation
+ */
+const WETC_ADDRESS = "0x1953cab0E5bFa6D4a9BaD6E05fD46C1CC6527a5a".toLowerCase();
+const USC_ADDRESS = "0xDE093684c796204224BC081f937aa059D903c52a".toLowerCase();
+
+/**
+ * Calculate USD value for a token amount
+ *
+ * Uses the ETC ecosystem prices to derive USD values:
+ * - ETC: Direct price from CoinGecko
+ * - USC: Direct price from CoinGecko (should be ~$1.00)
+ * - WETC: Direct price from CoinGecko (should track ETC with DEX arbitrage)
+ * - Other tokens: Derived from DEX pairs if available
+ *
+ * @param tokenAmount - Token amount (raw, not formatted)
+ * @param tokenDecimals - Token decimals
+ * @param tokenAddress - Token contract address
+ * @param prices - ETC ecosystem prices
+ * @param derivedPrices - Optional map of derived prices from LP pools
+ * @returns USD value or null if price unavailable
+ */
+export function calculateTokenUSDValue(
+    tokenAmount: bigint,
+    tokenDecimals: number,
+    tokenAddress: Address,
+    prices: ETCPriceData,
+    derivedPrices?: Map<string, DerivedPrice>
+): number | null {
+    if (tokenAmount === BigInt(0)) {
+        return 0;
+    }
+
+    // Convert token amount to decimal
+    const amount = Number(tokenAmount) / Math.pow(10, tokenDecimals);
+
+    // Determine which price to use based on token address
+    const normalizedAddress = tokenAddress.toLowerCase();
+
+    // Try known prices first
+    if (normalizedAddress === WETC_ADDRESS) {
+        return amount * prices.wetc.price;
+    }
+
+    if (normalizedAddress === USC_ADDRESS) {
+        return amount * prices.usc.price;
+    }
+
+    // Try derived prices if provided
+    if (derivedPrices) {
+        const derived = derivedPrices.get(normalizedAddress);
+        if (derived) {
+            return amount * derived.price;
+        }
+    }
+
+    // No price available
+    return null;
+}
+
+/**
+ * Calculate USD value for native balance (ETC/METC)
+ *
+ * @param nativeBalance - Native balance in wei
+ * @param prices - ETC ecosystem prices
+ * @param _isTestnet - Whether this is testnet (Mordor) - currently unused but kept for API consistency
+ * @returns USD value (uses mainnet prices for testnet display)
+ */
+export function calculateNativeUSDValue(
+    nativeBalance: bigint,
+    prices: ETCPriceData,
+    _isTestnet: boolean
+): number {
+    if (nativeBalance === BigInt(0)) {
+        return 0;
+    }
+
+    // Convert wei to ETC
+    const etcAmount = Number(nativeBalance) / Math.pow(10, 18);
+
+    // Use mainnet ETC price even for testnet (for display purposes)
+    return etcAmount * prices.etc.price;
+}
+
+/**
+ * Calculate USD value for an LP position
+ *
+ * For LP positions, we calculate the value of the user's share of reserves:
+ * - If one token has a known price, we can value that half
+ * - If both tokens have known prices, we can value both halves
+ *
+ * @param token0Address - Token0 address
+ * @param token0Decimals - Token0 decimals
+ * @param token0Reserve - User's share of token0 reserves
+ * @param token1Address - Token1 address
+ * @param token1Decimals - Token1 decimals
+ * @param token1Reserve - User's share of token1 reserves
+ * @param prices - ETC ecosystem prices
+ * @param derivedPrices - Optional map of derived prices from LP pools
+ * @returns USD value or null if neither token has known price
+ */
+export function calculateLPPositionUSDValue(
+    token0Address: Address,
+    token0Decimals: number,
+    token0Reserve: bigint,
+    token1Address: Address,
+    token1Decimals: number,
+    token1Reserve: bigint,
+    prices: ETCPriceData,
+    derivedPrices?: Map<string, DerivedPrice>
+): number | null {
+    const token0Value = calculateTokenUSDValue(
+        token0Reserve,
+        token0Decimals,
+        token0Address,
+        prices,
+        derivedPrices
+    );
+
+    const token1Value = calculateTokenUSDValue(
+        token1Reserve,
+        token1Decimals,
+        token1Address,
+        prices,
+        derivedPrices
+    );
+
+    // If we have both values, return sum
+    if (token0Value !== null && token1Value !== null) {
+        return token0Value + token1Value;
+    }
+
+    // If we only have one value, double it (assuming balanced pool)
+    if (token0Value !== null) {
+        return token0Value * 2;
+    }
+
+    if (token1Value !== null) {
+        return token1Value * 2;
+    }
+
+    // No known prices for either token
+    return null;
+}
+
+/**
+ * Calculate total USD value for an array of token balances
+ *
+ * @param tokenBalances - Array of token balances with address, amount, decimals
+ * @param prices - ETC ecosystem prices
+ * @param derivedPrices - Optional map of derived prices from LP pools
+ * @returns Total USD value of all tokens
+ */
+export function calculateTokensUSDValue(
+    tokenBalances: Array<{
+        tokenAddress: Address;
+        balance: bigint;
+        decimals: number;
+    }>,
+    prices: ETCPriceData,
+    derivedPrices?: Map<string, DerivedPrice>
+): number {
+    let total = 0;
+
+    for (const token of tokenBalances) {
+        const value = calculateTokenUSDValue(
+            token.balance,
+            token.decimals,
+            token.tokenAddress,
+            prices,
+            derivedPrices
+        );
+
+        if (value !== null) {
+            total += value;
+        }
+    }
+
+    return total;
+}
+
+/**
+ * Calculate total USD value for an array of LP positions (V2 and V3)
+ *
+ * Handles both:
+ * - V2 positions: Use lpBalance, lpTotalSupply, and reserves
+ * - V3 positions: Use liquidity, tick range, and V3 math
+ *
+ * @param positions - Array of V2 and/or V3 LP positions
+ * @param prices - ETC ecosystem prices
+ * @param derivedPrices - Optional map of derived prices from LP pools
+ * @returns Total USD value of all LP positions
+ */
+export function calculatePositionsUSDValue(
+    positions: ReadonlyArray<ETCswapV2Position | ETCswapV3Position>,
+    prices: ETCPriceData,
+    derivedPrices?: Map<string, DerivedPrice>
+): number {
+    let total = 0;
+
+    for (const position of positions) {
+        let value: number | null = null;
+
+        // V2 Position
+        if (position.protocol === "etcswap-v2") {
+            // Calculate user's share of reserves
+            const shareRatio = Number(position.lpBalance) / Number(position.lpTotalSupply);
+            const userReserve0 = BigInt(Math.floor(Number(position.token0.reserve) * shareRatio));
+            const userReserve1 = BigInt(Math.floor(Number(position.token1.reserve) * shareRatio));
+
+            value = calculateLPPositionUSDValue(
+                position.token0.address,
+                position.token0.decimals,
+                userReserve0,
+                position.token1.address,
+                position.token1.decimals,
+                userReserve1,
+                prices,
+                derivedPrices
+            );
+        }
+        // V3 Position
+        else if (position.protocol === "etcswap-v3") {
+            // Calculate token amounts from liquidity
+            const { amount0, amount1 } = getTokenAmountsFromLiquidity(
+                position.liquidity,
+                position.currentTick,
+                position.tickLower,
+                position.tickUpper,
+                position.token0.decimals,
+                position.token1.decimals
+            );
+
+            // Get token prices
+            const token0Price = calculateTokenUSDValue(
+                BigInt(Math.floor(amount0 * Math.pow(10, position.token0.decimals))),
+                position.token0.decimals,
+                position.token0.address,
+                prices,
+                derivedPrices
+            );
+
+            const token1Price = calculateTokenUSDValue(
+                BigInt(Math.floor(amount1 * Math.pow(10, position.token1.decimals))),
+                position.token1.decimals,
+                position.token1.address,
+                prices,
+                derivedPrices
+            );
+
+            // Calculate position value
+            value = calculateV3PositionValue(amount0, amount1, token0Price, token1Price);
+        }
+
+        if (value !== null && value > 0) {
+            total += value;
+        }
+    }
+
+    return total;
+}
+
+/**
+ * Format USD value with appropriate precision
+ *
+ * @param value - USD value
+ * @returns Formatted string (e.g., "$1,234.56")
+ */
+export function formatUSDValue(value: number): string {
+    if (value < 0.01) {
+        return "<$0.01";
+    }
+
+    return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    }).format(value);
+}

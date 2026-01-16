@@ -26,6 +26,12 @@ export const etcMainnet: Chain = {
     blockExplorers: {
         default: { name: "Blockscout", url: "https://etc.blockscout.com" },
     },
+    contracts: {
+        multicall3: {
+            address: "0x1E4282069e4822D5E6Fb88B2DbDE014f3E0625a9",
+            blockCreated: 20907242,
+        },
+    },
 };
 
 export const mordorTestnet: Chain = {
@@ -39,6 +45,7 @@ export const mordorTestnet: Chain = {
     blockExplorers: {
         default: { name: "Blockscout", url: "https://etc-mordor.blockscout.com" },
     },
+    // Multicall3 removed - has compatibility issues with aggregate3 function
     testnet: true,
 };
 

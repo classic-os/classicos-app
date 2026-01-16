@@ -1,0 +1,341 @@
+"use client";
+
+import { formatEther } from "viem";
+import { useChainId } from "wagmi";
+import { useSyncExternalStore } from "react";
+import { usePortfolioSummary } from "@/hooks/usePortfolioSummary";
+import { useETCEcosystemPrices } from "@/hooks/useETCEcosystemPrices";
+import { useEnhancedPrices } from "@/hooks/useEnhancedPrices";
+import { getEcosystem } from "@/lib/ecosystems/registry";
+import { CHAINS_BY_ID } from "@/lib/networks/registry";
+import { formatTokenBalance } from "@/lib/utils/format";
+import {
+    calculateNativeUSDValue,
+    calculateTokensUSDValue,
+    calculatePositionsUSDValue,
+} from "@/lib/portfolio/portfolio-value";
+import { CollapsiblePanel } from "@/components/ui/CollapsiblePanel";
+import { PriceChange } from "@/components/ui/PriceChange";
+import { CopyButton } from "@/components/ui/CopyButton";
+import { RefreshButton } from "@/components/ui/RefreshButton";
+import { useTokenBalances } from "@/hooks/useTokenBalances";
+import { useETCswapV2Positions } from "@/hooks/useETCswapV2Positions";
+import { useETCswapV3Positions } from "@/hooks/useETCswapV3Positions";
+import { usePriceHistory } from "@/hooks/usePriceHistory";
+import { useNativeBalance } from "@/hooks/useNativeBalance";
+import { getCurrency, subscribeWorkspace } from "@/lib/state/workspace";
+import { useExchangeRates } from "@/lib/currencies/useExchangeRates";
+import { formatCurrencyValue } from "@/lib/currencies/format";
+import { CurrencySelector } from "@/components/ui/CurrencySelector";
+
+/**
+ * Portfolio Summary Component
+ *
+ * Displays aggregated portfolio metrics in a clean summary card.
+ * Shows counts and key metrics for native balance, tokens, and positions.
+ *
+ * Following 2025 DeFi patterns with scannable metric cards.
+ */
+export function PortfolioSummary() {
+    const chainId = useChainId();
+    const summary = usePortfolioSummary();
+    const { data: prices, isLoading: isPriceLoading, refetch: refetchPrices } = useETCEcosystemPrices();
+    const { derivedPrices } = useEnhancedPrices();
+    const { data: tokenBalances, refetch: refetchTokens } = useTokenBalances();
+    const { data: v2Positions, refetch: refetchV2Positions } = useETCswapV2Positions();
+    const { data: v3Positions, refetch: refetchV3Positions } = useETCswapV3Positions();
+    const { refetch: refetchPriceHistory } = usePriceHistory("ethereum-classic");
+    const { refetch: refetchBalance } = useNativeBalance();
+
+    const ecosystem = getEcosystem(chainId);
+    const chain = CHAINS_BY_ID[chainId];
+    const nativeSymbol = chain?.nativeCurrency?.symbol || "ETH";
+    const isTestnet = ecosystem.kind === "testnet";
+
+    // Currency selection and exchange rates
+    const currency = useSyncExternalStore(subscribeWorkspace, getCurrency, getCurrency);
+    const { data: exchangeRates } = useExchangeRates();
+
+    // Refresh all portfolio data
+    const handleRefresh = async () => {
+        await Promise.all([
+            refetchPrices(),
+            refetchTokens(),
+            refetchV2Positions(),
+            refetchV3Positions(),
+            refetchPriceHistory(),
+            refetchBalance(),
+        ]);
+    };
+
+    // State 1: Disconnected
+    if (!summary.isConnected) {
+        return (
+            <CollapsiblePanel
+                title="Portfolio Summary"
+                description="Asset counts and key metrics"
+                defaultExpanded={true}
+            >
+                <div className="text-center text-sm text-white/55">
+                    Connect wallet to view portfolio summary
+                </div>
+            </CollapsiblePanel>
+        );
+    }
+
+    // State 2: Loading
+    if (summary.isLoading) {
+        return (
+            <CollapsiblePanel
+                title="Portfolio Summary"
+                description="Asset counts and key metrics"
+                defaultExpanded={true}
+            >
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                    <div className="h-20 animate-pulse rounded-lg bg-white/5" />
+                    <div className="h-20 animate-pulse rounded-lg bg-white/5" />
+                    <div className="h-20 animate-pulse rounded-lg bg-white/5" />
+                </div>
+            </CollapsiblePanel>
+        );
+    }
+
+    // State 3: Error
+    if (summary.hasError) {
+        return (
+            <CollapsiblePanel
+                title="Portfolio Summary"
+                description="Asset counts and key metrics"
+                defaultExpanded={true}
+            >
+                <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4">
+                    <div className="text-sm font-medium text-red-400">
+                        Failed to load portfolio summary
+                    </div>
+                    <div className="mt-1 text-xs text-red-300/70">
+                        Some data sources encountered errors
+                    </div>
+                </div>
+            </CollapsiblePanel>
+        );
+    }
+
+    // State 4: Empty portfolio
+    if (summary.isEmpty) {
+        return (
+            <CollapsiblePanel
+                title="Portfolio Summary"
+                description="Asset counts and key metrics"
+                defaultExpanded={true}
+            >
+                <div className="text-center">
+                    <div className="mb-2 text-sm font-medium text-white/70">
+                        No assets detected
+                    </div>
+                    <div className="text-xs text-white/50">
+                        This wallet doesn&apos;t have any {nativeSymbol}, tokens, or liquidity positions on{" "}
+                        {chain?.name || `Chain ${chainId}`}.
+                    </div>
+                    <div className="mt-3 text-xs text-white/45">
+                        To get started, transfer {nativeSymbol} to this wallet or acquire tokens through a swap.
+                    </div>
+                </div>
+            </CollapsiblePanel>
+        );
+    }
+
+    // State 5: Data - show summary
+    const nativeBalanceFormatted = summary.native.balance
+        ? formatTokenBalance(formatEther(summary.native.balance))
+        : "0";
+
+    // Calculate USD value for native balance
+    const nativeUSDValue = prices && summary.native.balance
+        ? calculateNativeUSDValue(summary.native.balance, prices, isTestnet)
+        : 0;
+
+    // Calculate USD value for tokens (known + derived prices from LP pools)
+    const tokensUSDValue = prices && tokenBalances
+        ? calculateTokensUSDValue(
+              tokenBalances.map((tb) => ({
+                  tokenAddress: tb.token.address,
+                  balance: tb.balance,
+                  decimals: tb.token.decimals,
+              })),
+              prices,
+              derivedPrices
+          )
+        : 0;
+
+    // Calculate USD value for LP positions (both V2 and V3)
+    // Combine V2 and V3 positions into a single array
+    const allPositions = [
+        ...(v2Positions || []),
+        ...(v3Positions || []),
+    ];
+    const positionsUSDValue = prices && allPositions.length > 0
+        ? calculatePositionsUSDValue(allPositions, prices, derivedPrices)
+        : 0;
+
+    // Total portfolio value across all asset types
+    const totalPortfolioValue = nativeUSDValue + tokensUSDValue + positionsUSDValue;
+
+    const assetCountLabel = `${summary.totalAssets} ${summary.totalAssets === 1 ? "Asset" : "Assets"}`;
+
+    return (
+        <CollapsiblePanel
+            title="Portfolio Summary"
+            description={assetCountLabel}
+            defaultExpanded={true}
+        >
+            {/* Wallet Address Card */}
+            {summary.address && (
+                <div className="mb-4 rounded-lg border border-white/10 bg-white/5 p-3">
+                    <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                            <div className="text-xs text-white/55">Wallet Address</div>
+                            <div className="mt-0.5 font-mono text-sm text-white/90 truncate">
+                                {summary.address}
+                            </div>
+                        </div>
+                        <CopyButton text={summary.address} label="Copy" size="sm" variant="outline" />
+                    </div>
+                </div>
+            )}
+
+            {/* Total Portfolio Value Card */}
+            {totalPortfolioValue > 0 && (
+                <div className="mb-4 rounded-lg border border-blue-500/30 bg-blue-500/10 p-4">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <div className="text-xs font-medium uppercase tracking-wide text-white/70">
+                                Total Portfolio Value
+                            </div>
+                            <CurrencySelector variant="compact" />
+                        </div>
+                        <RefreshButton onRefresh={handleRefresh} size="sm" variant="outline" showLabel={false} />
+                    </div>
+                    <div className="mt-2 flex items-baseline gap-2">
+                        {isPriceLoading ? (
+                            <div className="text-sm text-white/50">Loading prices...</div>
+                        ) : (
+                            <>
+                                <div className="font-mono text-2xl font-semibold text-white/95">
+                                    {formatCurrencyValue(totalPortfolioValue, currency, exchangeRates)}
+                                </div>
+                                {prices?.etc.change24h !== undefined && (
+                                    <PriceChange change24h={prices.etc.change24h} size="md" />
+                                )}
+                                {isTestnet && (
+                                    <div className="text-xs text-white/50">* Testnet Assets</div>
+                                )}
+                            </>
+                        )}
+                    </div>
+                    <div className="mt-1 text-xs text-white/50">
+                        Based on CoinGecko prices (ETC, USC, WETC)
+                    </div>
+                </div>
+            )}
+
+            {/* Metric Cards */}
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                {/* Native Balance Card */}
+                <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+                    <div className="text-xs font-medium uppercase tracking-wide text-white/55">
+                        Native Balance
+                    </div>
+                    <div className="mt-2 flex items-baseline gap-2">
+                        {summary.native.hasBalance ? (
+                            <>
+                                <div className="font-mono text-xl font-semibold text-white/90">
+                                    {nativeBalanceFormatted}
+                                </div>
+                                <div className="text-sm text-white/60">{nativeSymbol}</div>
+                            </>
+                        ) : (
+                            <div className="text-sm text-white/50">No balance</div>
+                        )}
+                    </div>
+                    {/* Currency Value */}
+                    {summary.native.hasBalance && (
+                        <div className="mt-2 flex items-baseline gap-2">
+                            <div className="text-sm text-white/50">
+                                {isPriceLoading && <span>Loading price...</span>}
+                                {!isPriceLoading && nativeUSDValue > 0 && (
+                                    <span>{formatCurrencyValue(nativeUSDValue, currency, exchangeRates)}</span>
+                                )}
+                                {!isPriceLoading && prices && nativeUSDValue === 0 && (
+                                    <span>Price unavailable</span>
+                                )}
+                            </div>
+                            {!isPriceLoading && prices?.etc.change24h !== undefined && (
+                                <PriceChange change24h={prices.etc.change24h} size="sm" />
+                            )}
+                        </div>
+                    )}
+                </div>
+
+                {/* Tokens Card */}
+                <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+                    <div className="text-xs font-medium uppercase tracking-wide text-white/55">
+                        Tokens
+                    </div>
+                    <div className="mt-2 flex items-baseline gap-2">
+                        <div className="font-mono text-xl font-semibold text-white/90">
+                            {summary.tokens.count}
+                        </div>
+                        <div className="text-sm text-white/60">
+                            {summary.tokens.count === 1 ? "Token" : "Tokens"}
+                        </div>
+                    </div>
+                    {/* Currency Value */}
+                    {summary.tokens.hasBalances && (
+                        <div className="mt-2 text-sm text-white/50">
+                            {isPriceLoading && <span>Loading price...</span>}
+                            {!isPriceLoading && tokensUSDValue > 0 && (
+                                <span>{formatCurrencyValue(tokensUSDValue, currency, exchangeRates)}</span>
+                            )}
+                            {!isPriceLoading && prices && tokensUSDValue === 0 && (
+                                <span>Price unavailable</span>
+                            )}
+                        </div>
+                    )}
+                    {!summary.tokens.hasBalances && (
+                        <div className="mt-1 text-xs text-white/50">No token balances</div>
+                    )}
+                </div>
+
+                {/* Positions Card */}
+                <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+                    <div className="text-xs font-medium uppercase tracking-wide text-white/55">
+                        Liquidity Positions
+                    </div>
+                    <div className="mt-2 flex items-baseline gap-2">
+                        <div className="font-mono text-xl font-semibold text-white/90">
+                            {summary.positions.count}
+                        </div>
+                        <div className="text-sm text-white/60">
+                            {summary.positions.count === 1 ? "Position" : "Positions"}
+                        </div>
+                    </div>
+                    {/* Currency Value */}
+                    {summary.positions.hasPositions && (
+                        <div className="mt-2 text-sm text-white/50">
+                            {isPriceLoading && <span>Loading price...</span>}
+                            {!isPriceLoading && positionsUSDValue > 0 && (
+                                <span>{formatCurrencyValue(positionsUSDValue, currency, exchangeRates)}</span>
+                            )}
+                            {!isPriceLoading && prices && positionsUSDValue === 0 && (
+                                <span>Price unavailable</span>
+                            )}
+                        </div>
+                    )}
+                    {!summary.positions.hasPositions && (
+                        <div className="mt-1 text-xs text-white/50">No active positions</div>
+                    )}
+                </div>
+            </div>
+        </CollapsiblePanel>
+    );
+}

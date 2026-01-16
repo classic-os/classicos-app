@@ -11,14 +11,26 @@ Classic OS is a complete product combining:
 3. **Brale Integration** (business partner) - Stablecoin onboarding and fiat access
 4. **Multi-EVM Support** (distribution layer) - Cross-chain portfolio and liquidity access
 
-## Current Status (as implemented)
-- Navigation: AppShell + Sidebar render modules Home, Produce, Portfolio, Deploy, Markets via [src/components/layout/NavItems.ts](src/components/layout/NavItems.ts).
-- Module surfaces: Home + module shells exist; Deploy/Markets/Portfolio render EmptyState panels because their capabilities are false; Produce renders mining/staking shells per mode.
-- Capability truth: `getEcosystem` derives from [src/lib/ecosystems/registry.ts](src/lib/ecosystems/registry.ts); `capabilities.deploy/markets/portfolio/monitoring` are false for all chains; `produce` = mine for ETC-family, stake for ETH-family, none otherwise.
-- Workspace state: `subscribeWorkspace` + `getActiveChainId` in [src/lib/state/workspace.ts](src/lib/state/workspace.ts); pages use `useSyncExternalStore` to react to localStorage + custom events.
-- Execution gating: [RequirementGate](src/components/ui/RequirementGate.tsx) enforces wallet connection and matching chain; blocks execution otherwise.
-- UI primitives: shells rely on ModuleHeader, Panel, EmptyState, RequirementGate, CapabilityBadge, StatusPill under [src/components/ui](src/components/ui).
-- Mining fact: ETChash supports ASIC and GPU miners; ASICs are primary focus due to network lock-in, with GPU support maintained.
+## Current Status (as of January 15, 2026)
+- **Navigation:** AppShell + Sidebar render modules Home, Produce, Portfolio, Deploy, Markets via [src/components/layout/NavItems.ts](src/components/layout/NavItems.ts)
+- **Portfolio Module:** ✅ Fully operational with read-only observation (Phase 1.1 + 1.2 complete)
+  - Native balance display with USD values
+  - ERC20 token balances with spot prices
+  - ETCswap V2 LP positions with APY estimates
+  - Derived token prices from LP pool ratios
+  - Price source attribution (CoinGecko vs ETCswap)
+  - Activity explorer integration
+  - Portfolio aggregation and summary
+- **Deploy/Markets:** EmptyState panels (capabilities disabled, planned for Phase 2-3)
+- **Produce:** Mining/staking shells per mode (surfaces planned for Phase 4)
+- **Capability truth:** `getEcosystem` derives from [src/lib/ecosystems/registry.ts](src/lib/ecosystems/registry.ts)
+  - `capabilities.portfolio` = **true** for ETC chains (mainnet + Mordor testnet)
+  - `capabilities.deploy/markets/monitoring` = false (not yet enabled)
+  - `produce` = mine for ETC-family, stake for ETH-family, none otherwise
+- **Workspace state:** `subscribeWorkspace` + `getActiveChainId` in [src/lib/state/workspace.ts](src/lib/state/workspace.ts); pages use `useSyncExternalStore` to react to localStorage + custom events
+- **Execution gating:** [RequirementGate](src/components/ui/RequirementGate.tsx) enforces wallet connection and matching chain; blocks execution otherwise
+- **UI primitives:** ModuleHeader, Panel, EmptyState, RequirementGate, CapabilityBadge, StatusPill, CopyButton, RefreshButton, PriceChange under [src/components/ui](src/components/ui)
+- **Mining fact:** ETChash supports ASIC and GPU miners; ASICs are primary focus due to network lock-in, with GPU support maintained
 
 ## Completed Foundation Work
 
@@ -42,28 +54,77 @@ Classic OS is a complete product combining:
 - ✅ Multi-EVM chain support with extensible registry
 - ✅ UI primitives (ModuleHeader, Panel, EmptyState, CapabilityBadge, StatusPill)
 
+## Completed Development Phases
+
+**Phase 1 (Complete - January 15, 2026):** Portfolio Read-Only
+- ✅ Native balance display (ETC/METC) with USD values
+- ✅ ERC20 token balance tracking with spot prices
+- ✅ ETCswap V2 LP position monitoring with APY estimates
+- ✅ **Derived token price system** from LP pool ratios (breakthrough feature)
+- ✅ Price source attribution (CoinGecko vs ETCswap V2)
+- ✅ Portfolio aggregation and USD value calculations
+- ✅ Activity explorer integration
+- ✅ 24h price change indicators
+- ✅ ETC price sparkline chart (7-day history)
+- ✅ Manual refresh controls
+- ✅ Testnet indicators throughout UI
+- ✅ Enhanced LP position cards with asset composition visualization
+- ✅ Copy buttons and explorer links for all addresses
+
+**See:** [032-phase1-completion-report.md](032-phase1-completion-report.md) for complete Phase 1 details
+
 ## Current Development Phase
 
-**Phase 1 (In Progress):** Portfolio Read-Only
-- 🔄 Building portfolio dashboard with protocol adapters
-- 🔄 Wallet connectivity and balance fetching
-- 📋 Transaction history and P&L tracking
+**Phase 1.3 (In Progress):** Portfolio Enhancements
+- 🔄 Multi-fiat currency support (EUR, GBP, JPY, CNY, etc.)
+- 📋 ETCswap V3 concentrated liquidity positions
+- 📋 ETCswap Launchpad emerging markets integration
 
 ## Future Development Phases
 
-**Phase 2:** Mining OS
-- Payout detection (RPC-based), earnings tracking dashboard
+**Phase 2:** Markets Module
+- DEX aggregation (ETCswap V2/V3 swap interface)
+- Brale stablecoin integration (minting/redemption)
+- Quote aggregation and slippage protection
+- Transaction preview and simulation
+
+**Phase 3:** Deploy Module (DeFi Automation)
+- Strategy builder (visual no-code interface)
+- Position health monitoring with liquidation alerts
+- Automated execution engine (stop-loss, take-profit, rebalancing)
+- Simulation mode (dry-run strategies)
+
+**Phase 4:** Mining OS
+- Payout detection (RPC-based)
+- Earnings tracking dashboard
 - Mining → strategy recommendations
+- Capital flow pathways from Produce to Deploy
 
-**Phase 3:** DeFi Automation
-- Strategy builder, position health monitoring, execution engine
-- Automated position management
-
-**Phase 4:** Full Integration
-- Mining → strategies (complete loop)
-- Brale → strategies (fiat → yield)
-- Multi-chain → ETC (migration pathway)
+**Phase 5:** Full Integration
+- Mining → strategies (complete Produce-to-Deploy loop)
+- Brale → strategies (fiat onramp integration)
+- Multi-chain → ETC (cross-chain migration)
+- Complete economic OS operational
 
 ## Next Steps
 
-Enable capabilities progressively: Portfolio first (read-only), then Markets (DEX + Brale), then Deploy (execution), then complete Mining OS integration. See [020-roadmap-sequence.md](020-roadmap-sequence.md) for detailed sequencing.
+**Immediate (Phase 1.3):**
+1. Multi-fiat currency support
+2. ETCswap V3 positions
+3. ETCswap Launchpad integration
+
+**Near-term (Phase 2):**
+- Enable Markets capability with DEX aggregation
+- Integrate Brale stablecoin contracts
+- Build swap interface
+
+**Mid-term (Phase 3):**
+- Enable Deploy capability
+- Build strategy builder
+- Implement automated execution engine
+
+**Long-term (Phase 4-5):**
+- Complete Mining OS integration
+- Full capital flow loop operational
+
+See [020-roadmap-sequence.md](020-roadmap-sequence.md) for detailed sequencing.

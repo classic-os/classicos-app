@@ -35,7 +35,7 @@ export function ModuleHeader({
     chips,
 }: {
     title: string;
-    subtitle: string;
+    subtitle: ReactNode;
     right?: ReactNode;
     chips?: Array<{ label: string; tone?: ChipTone }>;
 }) {

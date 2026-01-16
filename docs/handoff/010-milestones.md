@@ -44,39 +44,66 @@ Classic OS combines:
 - ✅ Development environment follows 2025/2026 best practices
 - ✅ Architecture supports future protocol integrations without refactoring
 
-### Phase 1: Portfolio Read-Only (Current)
+### Phase 1: Portfolio Read-Only (Complete - January 15, 2026)
 **Goal:** Enable unified portfolio observation across ETC DeFi protocols
 
 **Deliverables:**
-- 🔄 Portfolio read-only surfaces (balances, positions, activity)
-- 🔄 Protocol adapters for data fetching (RPC + protocol-specific)
-- 🔄 Transaction history display
-- 🔄 Basic P&L tracking
-- 📋 Real-time balance updates
-- 📋 Multi-protocol position aggregation
+- ✅ Portfolio read-only surfaces (balances, positions, activity)
+- ✅ Protocol adapters for data fetching (RPC + ETCswap V2)
+- ✅ Activity explorer integration (block explorer links)
+- ✅ Portfolio aggregation with USD values
+- ✅ Real-time balance updates (60-120s intervals)
+- ✅ Multi-protocol position aggregation
+- ✅ **Derived token price system** from LP pool ratios (breakthrough)
+- ✅ Price source attribution (CoinGecko vs ETCswap)
+- ✅ 24h price change indicators
+- ✅ ETC price sparkline chart
+- ✅ LP position APY estimates
+- ✅ Enhanced LP position cards with asset composition visualization
+- ✅ Manual refresh controls
+- ✅ Testnet indicators
 
 **Success Criteria:**
-- Users can connect wallet and view balances/positions across ETC DeFi protocols
-- Read-only observation works without transaction signing
-- Multi-protocol aggregation displays unified data
-- Portfolio serves as foundation for Deploy execution layer
+- ✅ Users can connect wallet and view balances/positions across ETC DeFi protocols
+- ✅ Read-only observation works without transaction signing
+- ✅ Multi-protocol aggregation displays unified USD-denominated data
+- ✅ Portfolio serves as foundation for Deploy execution layer
+- ✅ Derived price system enables pricing for all ecosystem tokens
+- ✅ Price transparency builds user trust
 
-### Phase 2: Mining OS
-**Goal:** Transform mining into capital inflow source
+**See:** [032-phase1-completion-report.md](032-phase1-completion-report.md) for complete details
+
+### Phase 1.3: Portfolio Enhancements (Current)
+**Goal:** Complete portfolio observation capabilities
 
 **Deliverables:**
-- RPC-based payout detection for ETC mining
-- Earnings tracking and visualization dashboard
-- Mining → strategy recommendation engine
-- Capital flow pathways from Produce to Deploy
+- 🔄 Multi-fiat currency support (EUR, GBP, JPY, CNY, etc.)
+- 📋 ETCswap V3 concentrated liquidity positions
+- 📋 ETCswap Launchpad emerging markets integration
 
 **Success Criteria:**
-- Miners see payouts automatically detected
-- Earnings dashboard shows real-time mining income
-- Strategy suggestions appear based on mining income
-- One-click pathway from earned ETC to yield strategies
+- Users can view portfolio in their preferred fiat currency
+- ETCswap V3 positions display with tick range visualization
+- Launchpad token holdings and vesting schedules visible
 
-### Phase 3: DeFi Automation
+### Phase 2: Markets Module
+**Goal:** Enable liquidity access and stablecoin onboarding
+
+**Deliverables:**
+- DEX aggregation (ETCswap V2/V3 swap interface)
+- Brale stablecoin integration (minting/redemption)
+- Quote aggregation across DEXs
+- Slippage protection and transaction preview
+- Multi-route swap optimization
+
+**Success Criteria:**
+- Users can swap tokens via ETCswap directly from Classic OS
+- Brale stablecoins can be minted and redeemed
+- Best prices shown across multiple DEX routes
+- Transaction preview shows expected outcomes before signing
+- Markets module serves as liquidity layer for Deploy strategies
+
+### Phase 3: Deploy Module (DeFi Automation)
 **Goal:** Enable strategy execution and automated position management
 
 **Deliverables:**
@@ -91,29 +118,65 @@ Classic OS combines:
 - Position health warnings appear before liquidation risk
 - Automated rules execute without manual intervention
 - Multi-step strategies execute in single transaction
+- Deploy builds on Portfolio observation and Markets liquidity layers
 
-### Phase 4: Full Integration
+### Phase 4: Mining OS
+**Goal:** Transform mining into capital inflow source
+
+**Deliverables:**
+- RPC-based payout detection for ETC mining
+- Earnings tracking and visualization dashboard
+- Mining → strategy recommendation engine
+- Capital flow pathways from Produce to Deploy
+
+**Success Criteria:**
+- Miners see payouts automatically detected
+- Earnings dashboard shows real-time mining income
+- Strategy suggestions appear based on mining income
+- One-click pathway from earned ETC to yield strategies
+- Complete Produce → Portfolio → Deploy capital flow
+
+### Phase 5: Full Integration
 **Goal:** Complete the capital flow loop across all modules
 
 **Deliverables:**
 - Mining → strategies (complete Produce-to-Deploy loop)
 - Brale → strategies (fiat onramp integration)
 - Multi-chain → ETC (cross-chain migration pathways)
-- Markets integration (DEX aggregation + Brale stablecoins)
+- Cross-module automation and optimization
 
 **Success Criteria:**
 - Miners deploy earned ETC into strategies automatically
 - Fiat users onboard via Brale and deploy into yield
 - Multi-chain users migrate capital to ETC seamlessly
 - Full economic OS operational: Production → Onboarding → Deployment → Retention
+- All modules work together as unified system
 
 ## Near-Term Priorities
 
-1. **Complete Portfolio read-only** (Phase 1)
-2. **Enable Markets with DEX aggregation** (Phase 2 prep)
-3. **Build Mining OS payout detection** (Phase 2)
-4. **Integrate Brale stablecoin contracts** (Phase 2)
-5. **Build strategy builder** (Phase 3)
+1. **Complete Portfolio enhancements** (Phase 1.3)
+   - Multi-fiat currency support
+   - ETCswap V3 positions
+   - ETCswap Launchpad integration
+
+2. **Enable Markets with DEX aggregation** (Phase 2)
+   - ETCswap V2/V3 swap interface
+   - Brale stablecoin contracts
+   - Quote aggregation
+
+3. **Build Deploy module** (Phase 3)
+   - Strategy builder
+   - Automated execution engine
+   - Position health monitoring
+
+4. **Integrate Mining OS** (Phase 4)
+   - Payout detection
+   - Earnings dashboard
+   - Mining → strategy recommendations
+
+5. **Complete full integration** (Phase 5)
+   - Cross-module automation
+   - Complete capital flow loop
 
 ## Non-Goals
 

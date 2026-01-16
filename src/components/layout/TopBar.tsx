@@ -5,6 +5,7 @@ import { NAV_ITEMS } from "@/components/layout/NavItems";
 import { ActiveNetworkSelector } from "@/components/primitives/ActiveNetworkSelector";
 import { TestnetToggle } from "@/components/primitives/TestnetToggle";
 import { WalletConnector } from "@/components/primitives/WalletConnector";
+import { TopBarBalance } from "@/components/layout/TopBarBalance";
 
 export function TopBar() {
     const pathname = usePathname();
@@ -25,6 +26,7 @@ export function TopBar() {
 
                 {/* Right: workspace controls + primary action */}
                 <div className="flex items-center gap-2">
+                    <TopBarBalance />
                     <ActiveNetworkSelector />
                     <TestnetToggle />
                     <WalletConnector />

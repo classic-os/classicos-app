@@ -11,8 +11,16 @@ export function makeWagmiConfig() {
     const transports = Object.fromEntries(
         NETWORKS.map((n) => {
             const rpc = firstHttpRpc(n);
-            // If a chain is missing an RPC URL, default to no transport entry; wagmi will error loudly.
-            return [n.chain.id, rpc ? http(rpc) : http("")];
+            // Disable automatic multicall batching for compatibility
+            // Some chains (like Mordor) have multicall3 deployed but with compatibility issues
+            return [
+                n.chain.id,
+                rpc
+                    ? http(rpc, {
+                          batch: false, // Disable automatic call batching
+                      })
+                    : http(""),
+            ];
         })
     );
 

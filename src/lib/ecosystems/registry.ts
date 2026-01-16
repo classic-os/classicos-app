@@ -120,7 +120,7 @@ function capabilitiesFor(chainId: number, family: NetworkFamilyKey, kind: Networ
         // v0.1: default false until adapters/surfaces exist
         deploy: false,
         markets: false,
-        portfolio: false,
+        portfolio: true, // Phase 1 complete: Native balance, ERC20 tokens, ETCswap V2 LP positions, transaction history, basic P&L tracking
         monitoring: false,
 
         flags: {
