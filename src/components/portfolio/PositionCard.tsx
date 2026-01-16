@@ -13,7 +13,7 @@ import { getTokenInfo } from "@/lib/portfolio/token-registry";
 import { formatTokenBalance, formatNumber, formatLPTokenBalance } from "@/lib/utils/format";
 import { calculateLPPositionUSDValue } from "@/lib/portfolio/portfolio-value";
 import { formatCurrencyValue } from "@/lib/currencies/format";
-import { estimateAPY } from "@/lib/portfolio/lp-apy";
+import { estimateAPY, estimateV3APY } from "@/lib/portfolio/lp-apy";
 import { getTokenPrice } from "@/lib/portfolio/derived-prices";
 import { getTokenAmountsFromLiquidity, calculateV3PositionValue, tickToPrice } from "@/lib/portfolio/v3-math";
 import { detectArbitrageOpportunities } from "@/lib/portfolio/arbitrage-detection";
@@ -548,6 +548,9 @@ function V3PositionCard({ position, chainId, prices, derivedPrices, currency, ex
     // Calculate position value
     const positionValueUSD = calculateV3PositionValue(amount0, amount1, token0Price, token1Price);
 
+    // Calculate APY estimate for V3 position
+    const apyEstimate = prices ? estimateV3APY(position, prices) : null;
+
     // Price range bounds (adjusted for token decimals)
     // tickToPrice() returns price in raw units, must adjust for decimal difference
     const decimalAdjustment = Math.pow(10, token0.decimals - token1.decimals);
@@ -746,8 +749,29 @@ function V3PositionCard({ position, chainId, prices, derivedPrices, currency, ex
                         <div className="mb-1 text-xs text-white/55">
                             ETCswap V3 NFT Position
                         </div>
-                        <div className="font-mono text-sm font-medium text-white/90">
-                            #{position.tokenId.toString()}
+                        <div className="flex items-baseline gap-3">
+                            <div className="font-mono text-sm font-medium text-white/90">
+                                #{position.tokenId.toString()}
+                            </div>
+                            {apyEstimate && apyEstimate.method !== "unavailable" && apyEstimate.apy > 0 && (
+                                <div className="flex items-center gap-1.5 text-xs">
+                                    <span className="text-white/55">Est. APY</span>
+                                    <span
+                                        className="text-white/40"
+                                        title={`Confidence: ${apyEstimate.confidence}\nMethod: ${apyEstimate.method}\nConcentrated liquidity APY\nFees only accrue when in range`}
+                                    >
+                                        ⓘ
+                                    </span>
+                                    <span className={`font-mono font-medium ${inRange ? "text-green-400" : "text-yellow-400"}`}>
+                                        {formatNumber(apyEstimate.apy, 2, 0)}%
+                                    </span>
+                                    {!inRange && (
+                                        <span className="text-xs text-yellow-400/70" title="Position is out of range - not earning fees">
+                                            ⚠
+                                        </span>
+                                    )}
+                                </div>
+                            )}
                         </div>
                         <div className="mt-2 flex items-center gap-2">
                             <span className="text-xs text-white/40">
