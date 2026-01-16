@@ -691,15 +691,6 @@ function V3PositionCard({ position, chainId, prices, derivedPrices, currency, ex
                                     Out of Range
                                 </span>
                             )}
-                            {hasArbitrage && (
-                                <button
-                                    onClick={() => setShowArbitrageDetails(!showArbitrageDetails)}
-                                    className="rounded border border-yellow-500/30 bg-yellow-500/10 px-1.5 py-0.5 text-xs font-medium text-yellow-400 transition hover:bg-yellow-500/20"
-                                    title="Click to view arbitrage opportunities"
-                                >
-                                    Arbitrage {arbitrageOpportunities.length > 1 ? `(${arbitrageOpportunities.length})` : ""}
-                                </button>
-                            )}
                         </div>
                     </div>
                     <a
