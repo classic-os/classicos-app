@@ -300,10 +300,10 @@ function V2PositionCard({ position, chainId, prices, derivedPrices, currency, ex
                 </div>
             )}
 
-            {/* Your Position (consolidated: value, LP tokens, APY, tokens) */}
+            {/* Position Details */}
             <div className="mb-3 rounded-lg border border-white/10 bg-black/20 p-3">
                 <div className="mb-3 flex items-baseline justify-between">
-                    <div className="text-xs text-white/70">Your Position Value</div>
+                    <div className="text-xs text-white/70">Position Value</div>
                     {positionValueUSD !== null && (
                         <div className="font-mono text-lg font-semibold text-white/95">
                             {formatCurrencyValue(positionValueUSD, currency, exchangeRates)}
@@ -315,7 +315,7 @@ function V2PositionCard({ position, chainId, prices, derivedPrices, currency, ex
                 <div className="mb-3 grid grid-cols-2 gap-4 border-b border-white/10 pb-3">
                     <div>
                         <div className="mb-1 text-xs text-white/55">
-                            ETCswap V2 pool ({poolName}) LP Tokens
+                            ETCswap V2 - {poolName}
                         </div>
                         <div className="flex items-baseline gap-3">
                             <LPTokenAmount value={lpBalanceFormatted} />
@@ -393,10 +393,10 @@ function V2PositionCard({ position, chainId, prices, derivedPrices, currency, ex
 
                 {/* Token Amounts (left) + Pool Share & Asset Composition (right) */}
                 <div className="grid grid-cols-2 gap-4">
-                    {/* Left: Your Token Amounts */}
+                    {/* Left: Token Amounts */}
                     <div className="space-y-3">
                         <div>
-                            <div className="mb-2 text-xs text-white/55">Your Token Amounts</div>
+                            <div className="mb-2 text-xs text-white/55">Token Amounts</div>
                             <div className="space-y-3">
                                 <div>
                                     <div className="text-xs text-white/55">{token0.symbol}</div>
@@ -463,7 +463,7 @@ function V2PositionCard({ position, chainId, prices, derivedPrices, currency, ex
                         {/* Asset Composition */}
                         {token0Price !== null && token1Price !== null && positionValueUSD !== null && (
                             <div>
-                                <div className="mb-2 text-xs text-white/55">Current Asset Composition</div>
+                                <div className="mb-2 text-xs text-white/55">Asset Composition</div>
                                 {(() => {
                                     const token0ValueUSD = userReserve0 * token0Price;
                                     const token1ValueUSD = userReserve1 * token1Price;
@@ -482,12 +482,12 @@ function V2PositionCard({ position, chainId, prices, derivedPrices, currency, ex
                                             </div>
                                             <div className="flex h-2 overflow-hidden rounded-full">
                                                 <div
-                                                    className="bg-purple-500"
+                                                    className="bg-emerald-500"
                                                     style={{ width: `${token0Percent}%` }}
                                                     title={`${token0.symbol}: ${formatNumber(token0Percent, 2, 0)}%`}
                                                 />
                                                 <div
-                                                    className="bg-cyan-500"
+                                                    className="bg-blue-500"
                                                     style={{ width: `${token1Percent}%` }}
                                                     title={`${token1.symbol}: ${formatNumber(token1Percent, 2, 0)}%`}
                                                 />
@@ -732,10 +732,10 @@ function V3PositionCard({ position, chainId, prices, derivedPrices, currency, ex
                 </div>
             )}
 
-            {/* Your Position (comprehensive view matching V2) */}
+            {/* Position Details */}
             <div className="mb-3 rounded-lg border border-white/10 bg-black/20 p-3">
                 <div className="mb-3 flex items-baseline justify-between">
-                    <div className="text-xs text-white/70">Your Position Value</div>
+                    <div className="text-xs text-white/70">Position Value</div>
                     {positionValueUSD !== null && (
                         <div className="font-mono text-lg font-semibold text-white/95">
                             {formatCurrencyValue(positionValueUSD, currency, exchangeRates)}
@@ -747,7 +747,7 @@ function V3PositionCard({ position, chainId, prices, derivedPrices, currency, ex
                 <div className="mb-3 grid grid-cols-2 gap-4 border-b border-white/10 pb-3">
                     <div>
                         <div className="mb-1 text-xs text-white/55">
-                            ETCswap V3 NFT Position
+                            ETCswap V3 - {poolName}
                         </div>
                         <div className="flex items-baseline gap-3">
                             <div className="font-mono text-sm font-medium text-white/90">
@@ -809,10 +809,10 @@ function V3PositionCard({ position, chainId, prices, derivedPrices, currency, ex
 
                 {/* Token Amounts (left) + Price Range & Asset Composition (right) */}
                 <div className="grid grid-cols-2 gap-4">
-                    {/* Left: Your Token Amounts */}
+                    {/* Left: Token Amounts */}
                     <div className="space-y-3">
                         <div>
-                            <div className="mb-2 text-xs text-white/55">Your Token Amounts</div>
+                            <div className="mb-2 text-xs text-white/55">Token Amounts</div>
                             <div className="space-y-3">
                                 <div>
                                     <div className="text-xs text-white/55">{token0.symbol}</div>
@@ -909,7 +909,7 @@ function V3PositionCard({ position, chainId, prices, derivedPrices, currency, ex
                         {/* Asset Composition */}
                         {token0Price !== null && token1Price !== null && positionValueUSD !== null && (
                             <div>
-                                <div className="mb-2 text-xs text-white/55">Current Asset Composition</div>
+                                <div className="mb-2 text-xs text-white/55">Asset Composition</div>
                                 {(() => {
                                     const token0ValueUSD = amount0 * token0Price;
                                     const token1ValueUSD = amount1 * token1Price;
@@ -928,12 +928,12 @@ function V3PositionCard({ position, chainId, prices, derivedPrices, currency, ex
                                             </div>
                                             <div className="flex h-2 overflow-hidden rounded-full">
                                                 <div
-                                                    className="bg-purple-500"
+                                                    className="bg-emerald-500"
                                                     style={{ width: `${token0Percent}%` }}
                                                     title={`${token0.symbol}: ${formatNumber(token0Percent, 2, 0)}%`}
                                                 />
                                                 <div
-                                                    className="bg-cyan-500"
+                                                    className="bg-blue-500"
                                                     style={{ width: `${token1Percent}%` }}
                                                     title={`${token1.symbol}: ${formatNumber(token1Percent, 2, 0)}%`}
                                                 />
