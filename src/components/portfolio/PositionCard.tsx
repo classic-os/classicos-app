@@ -189,15 +189,6 @@ function V2PositionCard({ position, chainId, prices, derivedPrices, currency, ex
                             <span className="rounded border border-white/20 bg-white/5 px-1.5 py-0.5 text-xs font-medium text-white/70">
                                 In Range
                             </span>
-                            {hasArbitrage && (
-                                <button
-                                    onClick={() => setShowArbitrageDetails(!showArbitrageDetails)}
-                                    className="rounded border border-yellow-500/30 bg-yellow-500/10 px-1.5 py-0.5 text-xs font-medium text-yellow-400 transition hover:bg-yellow-500/20"
-                                    title="Click to view arbitrage opportunities"
-                                >
-                                    Arbitrage {arbitrageOpportunities.length > 1 ? `(${arbitrageOpportunities.length})` : ""}
-                                </button>
-                            )}
                         </div>
                     </div>
                     <a
@@ -224,78 +215,162 @@ function V2PositionCard({ position, chainId, prices, derivedPrices, currency, ex
                 </div>
             </div>
 
-            {/* Arbitrage Opportunities (expandable) */}
-            {hasArbitrage && showArbitrageDetails && (
-                <div className="mb-3 rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-3">
-                    <div className="mb-2 flex items-center gap-2">
-                        <span className="text-xs font-medium uppercase tracking-wide text-yellow-400">
-                            Arbitrage Opportunities Detected
-                        </span>
-                        <span className="text-xs text-yellow-400/70">
-                            (DEX vs CoinGecko FMV)
-                        </span>
+            {/* Terminal-style Arbitrage Alert */}
+            {hasArbitrage && (
+                <button
+                    onClick={() => setShowArbitrageDetails(!showArbitrageDetails)}
+                    className="mb-3 w-full text-left transition hover:bg-white/[0.02]"
+                >
+                    <div className="flex items-start gap-2 rounded border-l-2 border-emerald-500/50 bg-black/30 px-3 py-2 font-mono text-xs">
+                        <span className="text-emerald-500">{showArbitrageDetails ? '▼' : '▶'}</span>
+                        <div className="flex-1">
+                            <span className="text-emerald-400">economic opportunity:</span>
+                            <span className="text-white/70"> {arbitrageOpportunities.length} price {arbitrageOpportunities.length === 1 ? 'deviation' : 'deviations'} detected (DEX ↔ CEX)</span>
+                        </div>
                     </div>
-                    <div className="space-y-2">
-                        {arbitrageOpportunities.map((opp) => {
-                            // Color represents DEX action (first action in sequence):
-                            // Green = Buy DEX (accumulation)
-                            // Red = Sell DEX (distribution)
-                            //
-                            // Premium (DEX > FMV): Sell DEX → RED
-                            // Discount (DEX < FMV): Buy DEX → GREEN
-                            const isGreen = opp.type === "discount"; // discount = buy opportunity
-                            const borderColor = isGreen ? "border-green-500/30" : "border-red-500/30";
-                            const bgColor = isGreen ? "bg-green-500/10" : "bg-red-500/10";
-                            const textColor = isGreen ? "text-green-400" : "text-red-400";
-                            const badgeBg = isGreen ? "bg-green-500/20" : "bg-red-500/20";
+                </button>
+            )}
 
-                            return (
-                            <div
-                                key={opp.tokenAddress}
-                                className={`rounded-lg border ${borderColor} ${bgColor} p-2`}
-                            >
-                                <div className="mb-1 flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-sm font-medium text-white/90">
-                                            {opp.tokenSymbol}
-                                        </span>
-                                        <span className={`text-xs font-medium ${textColor}`}>
-                                            {opp.deviationPercent > 0 ? "+" : ""}
-                                            {opp.deviationPercent.toFixed(2)}%
-                                        </span>
-                                    </div>
-                                    <div className={`rounded px-1.5 py-0.5 text-xs font-medium ${badgeBg} ${textColor}`}>
+            {/* Arbitrage Opportunities Details (expanded) */}
+            {hasArbitrage && showArbitrageDetails && (
+                <div className="mb-3 space-y-2 rounded border-l-2 border-emerald-500/50 bg-black/30 px-3 py-2 font-mono text-xs">
+                    {arbitrageOpportunities.map((opp, index) => {
+                        // Color represents DEX action (first action in sequence):
+                        // Green = Buy DEX (accumulation)
+                        // Red = Sell DEX (distribution)
+                        //
+                        // Premium (DEX > FMV): Sell DEX → RED
+                        // Discount (DEX < FMV): Buy DEX → GREEN
+                        const isGreen = opp.type === "discount"; // discount = buy opportunity
+                        const accentColor = isGreen ? "text-green-400" : "text-red-400";
+
+                        // Generate DEX swap URLs
+                        // Determine chain parameter (mordor for testnet, classic for mainnet)
+                        const chainParam = chainId === 63 ? "mordor" : "classic";
+                        const isV2 = opp.source.includes("V2");
+                        const v2BaseUrl = chainId === 63 ? "https://v2-mordor.etcswap.org" : "https://v2.etcswap.org";
+                        const v3BaseUrl = chainId === 63 ? "https://v3.etcswap.org" : "https://v3.etcswap.org";
+
+                        // USC address
+                        const USC_ADDR = "0xDE093684c796204224BC081f937aa059D903c52a";
+
+                        // Determine which token to swap
+                        const isWETC = opp.tokenSymbol === "WETC";
+                        const isUSC = opp.tokenSymbol === "USC";
+
+                        let dexSwapUrl = "";
+                        if (isV2) {
+                            if (opp.type === "premium") {
+                                // Sell token on DEX (token → other token)
+                                if (isWETC) {
+                                    // Sell ETC for USC (use "ETC" to let DEX handle native ETC)
+                                    dexSwapUrl = `${v2BaseUrl}/#/swap?inputCurrency=ETC&outputCurrency=${USC_ADDR}`;
+                                } else if (isUSC) {
+                                    // Sell USC for ETC
+                                    dexSwapUrl = `${v2BaseUrl}/#/swap?inputCurrency=${USC_ADDR}&outputCurrency=ETC`;
+                                }
+                            } else {
+                                // Buy token on DEX (other token → token)
+                                if (isWETC) {
+                                    // Buy ETC with USC (USC is input, ETC is output)
+                                    dexSwapUrl = `${v2BaseUrl}/#/swap?inputCurrency=${USC_ADDR}&outputCurrency=ETC`;
+                                } else if (isUSC) {
+                                    // Buy USC with ETC
+                                    dexSwapUrl = `${v2BaseUrl}/#/swap?inputCurrency=ETC&outputCurrency=${USC_ADDR}`;
+                                }
+                            }
+                        } else {
+                            // V3 swap URL (use "ETC" for native ETC handling)
+                            if (opp.type === "premium") {
+                                // Sell token on DEX
+                                if (isWETC) {
+                                    dexSwapUrl = `${v3BaseUrl}/#/swap?inputCurrency=ETC&outputCurrency=${USC_ADDR}&chain=${chainParam}`;
+                                } else if (isUSC) {
+                                    dexSwapUrl = `${v3BaseUrl}/#/swap?inputCurrency=${USC_ADDR}&outputCurrency=ETC&chain=${chainParam}`;
+                                }
+                            } else {
+                                // Buy token on DEX
+                                if (isWETC) {
+                                    dexSwapUrl = `${v3BaseUrl}/#/swap?inputCurrency=${USC_ADDR}&outputCurrency=ETC&chain=${chainParam}`;
+                                } else if (isUSC) {
+                                    dexSwapUrl = `${v3BaseUrl}/#/swap?inputCurrency=ETC&outputCurrency=${USC_ADDR}&chain=${chainParam}`;
+                                }
+                            }
+                        }
+
+                        // CEX/Brale URLs
+                        const cexUrl = "https://www.coingecko.com/en/coins/ethereum-classic";
+                        const braleUrl = "https://brale.xyz/";
+
+                        return (
+                            <div key={opp.tokenAddress} className={index > 0 ? "border-t border-white/10 pt-2" : ""}>
+                                {/* Token + Deviation */}
+                                <div className="mb-1 flex items-baseline gap-2">
+                                    <span className="text-white/70">[{index + 1}]</span>
+                                    <span className="text-white/90">{opp.tokenSymbol}:</span>
+                                    <span className={accentColor}>
+                                        {opp.deviationPercent > 0 ? "+" : ""}
+                                        {opp.deviationPercent.toFixed(2)}% deviation
+                                    </span>
+                                </div>
+
+                                {/* Strategy */}
+                                <div className="mb-1 ml-6 flex items-baseline gap-2">
+                                    <span className="text-white/50">strategy:</span>
+                                    <span className={accentColor}>
                                         {opp.mechanism === "fiat-backed"
                                             ? opp.type === "premium"
-                                                ? "Sell DEX, Redeem Brale"
-                                                : "Buy DEX, Redeem Brale"
+                                                ? "sell DEX → redeem Brale"
+                                                : "buy DEX → redeem Brale"
                                             : opp.type === "premium"
-                                            ? "Sell DEX, Buy CEX"
-                                            : "Buy DEX, Sell CEX"}
-                                    </div>
+                                            ? "sell DEX → buy CEX"
+                                            : "buy DEX → sell CEX"}
+                                    </span>
                                 </div>
-                                <div className="space-y-1 text-xs">
-                                    <div className="flex items-baseline justify-between text-white/70">
-                                        <span>DEX Price ({opp.source})</span>
-                                        <span className="font-mono text-white/90">
-                                            {formatCurrencyValue(opp.dexPrice, currency, exchangeRates)}
-                                        </span>
+
+                                {/* Prices with Links */}
+                                <div className="ml-6 space-y-0.5 text-white/60">
+                                    <div className="flex items-baseline gap-2">
+                                        <span className="w-20">dex:</span>
+                                        <span className="text-white/90">{formatCurrencyValue(opp.dexPrice, currency, exchangeRates)}</span>
+                                        <span className="text-white/40">({opp.source})</span>
+                                        {dexSwapUrl && (
+                                            <a
+                                                href={dexSwapUrl}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className={`ml-1 underline ${accentColor} hover:opacity-80`}
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                [{opp.type === "premium" ? "sell" : "buy"}]
+                                            </a>
+                                        )}
                                     </div>
-                                    <div className="flex items-baseline justify-between text-white/70">
-                                        <span>
-                                            {opp.mechanism === "fiat-backed" ? "Brale FMV (1:1 USD)" : "CoinGecko FMV (CEX)"}
+                                    <div className="flex items-baseline gap-2">
+                                        <span className="w-20">
+                                            {opp.mechanism === "fiat-backed" ? "brale:" : "cex:"}
                                         </span>
-                                        <span className="font-mono text-white/90">
-                                            {formatCurrencyValue(opp.fmvPrice, currency, exchangeRates)}
+                                        <span className="text-white/90">{formatCurrencyValue(opp.fmvPrice, currency, exchangeRates)}</span>
+                                        <span className="text-white/40">
+                                            {opp.mechanism === "fiat-backed" ? "(1:1 USD)" : "(CoinGecko)"}
                                         </span>
+                                        <a
+                                            href={opp.mechanism === "fiat-backed" ? braleUrl : cexUrl}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="ml-1 text-blue-400 underline hover:opacity-80"
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            [{opp.mechanism === "fiat-backed" ? "redeem" : opp.type === "premium" ? "buy" : "sell"}]
+                                        </a>
                                     </div>
                                 </div>
                             </div>
-                            );
-                        })}
-                    </div>
-                    <div className="mt-2 text-xs text-white/50">
-                        Price deviations reflect market inefficiencies between DEX and CEX liquidity.
+                        );
+                    })}
+
+                    <div className="mt-2 border-t border-white/10 pt-2 text-white/50">
+                        → price inefficiencies between dex and cex liquidity
                     </div>
                 </div>
             )}
@@ -492,11 +567,6 @@ function V2PositionCard({ position, chainId, prices, derivedPrices, currency, ex
                                                     title={`${token1.symbol}: ${formatNumber(token1Percent, 2, 0)}%`}
                                                 />
                                             </div>
-                                            {Math.abs(token0Percent - 50) > 5 && (
-                                                <div className="mt-1 text-xs text-yellow-400/70">
-                                                    ⚠ Ratio shifted from 50/50 deposit
-                                                </div>
-                                            )}
                                         </>
                                     );
                                 })()}
@@ -656,78 +726,162 @@ function V3PositionCard({ position, chainId, prices, derivedPrices, currency, ex
                 </div>
             </div>
 
-            {/* Arbitrage Opportunities (expandable) */}
-            {hasArbitrage && showArbitrageDetails && (
-                <div className="mb-3 rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-3">
-                    <div className="mb-2 flex items-center gap-2">
-                        <span className="text-xs font-medium uppercase tracking-wide text-yellow-400">
-                            Arbitrage Opportunities Detected
-                        </span>
-                        <span className="text-xs text-yellow-400/70">
-                            (DEX vs CoinGecko FMV)
-                        </span>
+            {/* Terminal-style Arbitrage Alert */}
+            {hasArbitrage && (
+                <button
+                    onClick={() => setShowArbitrageDetails(!showArbitrageDetails)}
+                    className="mb-3 w-full text-left transition hover:bg-white/[0.02]"
+                >
+                    <div className="flex items-start gap-2 rounded border-l-2 border-emerald-500/50 bg-black/30 px-3 py-2 font-mono text-xs">
+                        <span className="text-emerald-500">{showArbitrageDetails ? '▼' : '▶'}</span>
+                        <div className="flex-1">
+                            <span className="text-emerald-400">economic opportunity:</span>
+                            <span className="text-white/70"> {arbitrageOpportunities.length} price {arbitrageOpportunities.length === 1 ? 'deviation' : 'deviations'} detected (DEX ↔ CEX)</span>
+                        </div>
                     </div>
-                    <div className="space-y-2">
-                        {arbitrageOpportunities.map((opp) => {
-                            // Color represents DEX action (first action in sequence):
-                            // Green = Buy DEX (accumulation)
-                            // Red = Sell DEX (distribution)
-                            //
-                            // Premium (DEX > FMV): Sell DEX → RED
-                            // Discount (DEX < FMV): Buy DEX → GREEN
-                            const isGreen = opp.type === "discount"; // discount = buy opportunity
-                            const borderColor = isGreen ? "border-green-500/30" : "border-red-500/30";
-                            const bgColor = isGreen ? "bg-green-500/10" : "bg-red-500/10";
-                            const textColor = isGreen ? "text-green-400" : "text-red-400";
-                            const badgeBg = isGreen ? "bg-green-500/20" : "bg-red-500/20";
+                </button>
+            )}
 
-                            return (
-                            <div
-                                key={opp.tokenAddress}
-                                className={`rounded-lg border ${borderColor} ${bgColor} p-2`}
-                            >
-                                <div className="mb-1 flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-sm font-medium text-white/90">
-                                            {opp.tokenSymbol}
-                                        </span>
-                                        <span className={`text-xs font-medium ${textColor}`}>
-                                            {opp.deviationPercent > 0 ? "+" : ""}
-                                            {opp.deviationPercent.toFixed(2)}%
-                                        </span>
-                                    </div>
-                                    <div className={`rounded px-1.5 py-0.5 text-xs font-medium ${badgeBg} ${textColor}`}>
+            {/* Arbitrage Opportunities Details (expanded) */}
+            {hasArbitrage && showArbitrageDetails && (
+                <div className="mb-3 space-y-2 rounded border-l-2 border-emerald-500/50 bg-black/30 px-3 py-2 font-mono text-xs">
+                    {arbitrageOpportunities.map((opp, index) => {
+                        // Color represents DEX action (first action in sequence):
+                        // Green = Buy DEX (accumulation)
+                        // Red = Sell DEX (distribution)
+                        //
+                        // Premium (DEX > FMV): Sell DEX → RED
+                        // Discount (DEX < FMV): Buy DEX → GREEN
+                        const isGreen = opp.type === "discount"; // discount = buy opportunity
+                        const accentColor = isGreen ? "text-green-400" : "text-red-400";
+
+                        // Generate DEX swap URLs
+                        // Determine chain parameter (mordor for testnet, classic for mainnet)
+                        const chainParam = chainId === 63 ? "mordor" : "classic";
+                        const isV2 = opp.source.includes("V2");
+                        const v2BaseUrl = chainId === 63 ? "https://v2-mordor.etcswap.org" : "https://v2.etcswap.org";
+                        const v3BaseUrl = chainId === 63 ? "https://v3.etcswap.org" : "https://v3.etcswap.org";
+
+                        // USC address
+                        const USC_ADDR = "0xDE093684c796204224BC081f937aa059D903c52a";
+
+                        // Determine which token to swap
+                        const isWETC = opp.tokenSymbol === "WETC";
+                        const isUSC = opp.tokenSymbol === "USC";
+
+                        let dexSwapUrl = "";
+                        if (isV2) {
+                            if (opp.type === "premium") {
+                                // Sell token on DEX (token → other token)
+                                if (isWETC) {
+                                    // Sell ETC for USC (use "ETC" to let DEX handle native ETC)
+                                    dexSwapUrl = `${v2BaseUrl}/#/swap?inputCurrency=ETC&outputCurrency=${USC_ADDR}`;
+                                } else if (isUSC) {
+                                    // Sell USC for ETC
+                                    dexSwapUrl = `${v2BaseUrl}/#/swap?inputCurrency=${USC_ADDR}&outputCurrency=ETC`;
+                                }
+                            } else {
+                                // Buy token on DEX (other token → token)
+                                if (isWETC) {
+                                    // Buy ETC with USC (USC is input, ETC is output)
+                                    dexSwapUrl = `${v2BaseUrl}/#/swap?inputCurrency=${USC_ADDR}&outputCurrency=ETC`;
+                                } else if (isUSC) {
+                                    // Buy USC with ETC
+                                    dexSwapUrl = `${v2BaseUrl}/#/swap?inputCurrency=ETC&outputCurrency=${USC_ADDR}`;
+                                }
+                            }
+                        } else {
+                            // V3 swap URL (use "ETC" for native ETC handling)
+                            if (opp.type === "premium") {
+                                // Sell token on DEX
+                                if (isWETC) {
+                                    dexSwapUrl = `${v3BaseUrl}/#/swap?inputCurrency=ETC&outputCurrency=${USC_ADDR}&chain=${chainParam}`;
+                                } else if (isUSC) {
+                                    dexSwapUrl = `${v3BaseUrl}/#/swap?inputCurrency=${USC_ADDR}&outputCurrency=ETC&chain=${chainParam}`;
+                                }
+                            } else {
+                                // Buy token on DEX
+                                if (isWETC) {
+                                    dexSwapUrl = `${v3BaseUrl}/#/swap?inputCurrency=${USC_ADDR}&outputCurrency=ETC&chain=${chainParam}`;
+                                } else if (isUSC) {
+                                    dexSwapUrl = `${v3BaseUrl}/#/swap?inputCurrency=ETC&outputCurrency=${USC_ADDR}&chain=${chainParam}`;
+                                }
+                            }
+                        }
+
+                        // CEX/Brale URLs
+                        const cexUrl = "https://www.coingecko.com/en/coins/ethereum-classic";
+                        const braleUrl = "https://brale.xyz/";
+
+                        return (
+                            <div key={opp.tokenAddress} className={index > 0 ? "border-t border-white/10 pt-2" : ""}>
+                                {/* Token + Deviation */}
+                                <div className="mb-1 flex items-baseline gap-2">
+                                    <span className="text-white/70">[{index + 1}]</span>
+                                    <span className="text-white/90">{opp.tokenSymbol}:</span>
+                                    <span className={accentColor}>
+                                        {opp.deviationPercent > 0 ? "+" : ""}
+                                        {opp.deviationPercent.toFixed(2)}% deviation
+                                    </span>
+                                </div>
+
+                                {/* Strategy */}
+                                <div className="mb-1 ml-6 flex items-baseline gap-2">
+                                    <span className="text-white/50">strategy:</span>
+                                    <span className={accentColor}>
                                         {opp.mechanism === "fiat-backed"
                                             ? opp.type === "premium"
-                                                ? "Sell DEX, Redeem Brale"
-                                                : "Buy DEX, Redeem Brale"
+                                                ? "sell DEX → redeem Brale"
+                                                : "buy DEX → redeem Brale"
                                             : opp.type === "premium"
-                                            ? "Sell DEX, Buy CEX"
-                                            : "Buy DEX, Sell CEX"}
-                                    </div>
+                                            ? "sell DEX → buy CEX"
+                                            : "buy DEX → sell CEX"}
+                                    </span>
                                 </div>
-                                <div className="space-y-1 text-xs">
-                                    <div className="flex items-baseline justify-between text-white/70">
-                                        <span>DEX Price ({opp.source})</span>
-                                        <span className="font-mono text-white/90">
-                                            {formatCurrencyValue(opp.dexPrice, currency, exchangeRates)}
-                                        </span>
+
+                                {/* Prices with Links */}
+                                <div className="ml-6 space-y-0.5 text-white/60">
+                                    <div className="flex items-baseline gap-2">
+                                        <span className="w-20">dex:</span>
+                                        <span className="text-white/90">{formatCurrencyValue(opp.dexPrice, currency, exchangeRates)}</span>
+                                        <span className="text-white/40">({opp.source})</span>
+                                        {dexSwapUrl && (
+                                            <a
+                                                href={dexSwapUrl}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className={`ml-1 underline ${accentColor} hover:opacity-80`}
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                [{opp.type === "premium" ? "sell" : "buy"}]
+                                            </a>
+                                        )}
                                     </div>
-                                    <div className="flex items-baseline justify-between text-white/70">
-                                        <span>
-                                            {opp.mechanism === "fiat-backed" ? "Brale FMV (1:1 USD)" : "CoinGecko FMV (CEX)"}
+                                    <div className="flex items-baseline gap-2">
+                                        <span className="w-20">
+                                            {opp.mechanism === "fiat-backed" ? "brale:" : "cex:"}
                                         </span>
-                                        <span className="font-mono text-white/90">
-                                            {formatCurrencyValue(opp.fmvPrice, currency, exchangeRates)}
+                                        <span className="text-white/90">{formatCurrencyValue(opp.fmvPrice, currency, exchangeRates)}</span>
+                                        <span className="text-white/40">
+                                            {opp.mechanism === "fiat-backed" ? "(1:1 USD)" : "(CoinGecko)"}
                                         </span>
+                                        <a
+                                            href={opp.mechanism === "fiat-backed" ? braleUrl : cexUrl}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="ml-1 text-blue-400 underline hover:opacity-80"
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            [{opp.mechanism === "fiat-backed" ? "redeem" : opp.type === "premium" ? "buy" : "sell"}]
+                                        </a>
                                     </div>
                                 </div>
                             </div>
-                            );
-                        })}
-                    </div>
-                    <div className="mt-2 text-xs text-white/50">
-                        Price deviations reflect market inefficiencies between DEX and CEX liquidity.
+                        );
+                    })}
+
+                    <div className="mt-2 border-t border-white/10 pt-2 text-white/50">
+                        → price inefficiencies between dex and cex liquidity
                     </div>
                 </div>
             )}
